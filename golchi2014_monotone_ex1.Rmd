@@ -1,0 +1,365 @@
+---
+title: "golchi2014_monotone"
+output: html_document
+---
+
+# Example 1
+
+```{r setup}
+# monotone increasing function
+ytrue <- function(x) {log(20*x + 1)}  # x > -1/20
+
+# inputs where fcn evaluated
+x <- c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1)   
+# true/known model values
+y <- ytrue(x)
+
+# prediction set inputs
+xstar <- seq(0, 1, length.out = 50) 
+
+# derivative set inputs
+xprime <- c(0.42, 0.47, 0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87)  
+```
+
+```{r plots}
+# GOAL: (l, sig2, ystar1,... ystar50, yprime1, ..., yprime10)
+plot(x, ytrue(x), pch = 16, cex = 2)
+points(xstar, ytrue(xstar), pch = 16, col = "green")
+curve(ytrue, add = TRUE)
+```
+
+```{r proposal distributions}
+# N: number of particles
+
+Q1 <- function(N) { 
+  # N: number of particles
+  # independent, scaled random walk for l proposals
+  trunc <- NULL
+  
+  while(length(trunc) != N) {
+    prop <- rnorm(1, 0, 1)
+    if (prop > 0) {
+      trunc <- c(trunc, prop)
+    }
+  }
+  return(trunc)  # qqq need l >0
+}
+
+Q2 <- function(N, sig2.old) {
+  # N: number of particles
+  # proposal for sig2
+  return(rchisq(N, df = sig2old))
+}
+
+library(mvtnorm)
+Q3 <- function(N, ystar.old, yprime.old, 
+               qt, xstar, xprime) {
+  
+  qt <- 0 
+  
+  # r(., .) function (p6)
+  r <- function(xi, xj, sig2 = 1, ltrans = 1) {
+  
+  # g(.): from Matern classs of covariance functions
+  ## only need g = g_k because dim(x) = 1
+  ## modified bessel function of the second kind
+  ## https://stat.ethz.ch/pipermail/r-help/2002-December/027850.html
+  g <- function(xi, xj, ltrans) {
+    
+    # 2^(1 - lambda) / gamma(lambda) * 
+    #   ( sqrt(2 * lambda) * abs(xi - xj) / l ) ^ lambda *
+    #   besselK(sqrt(2 * lambda) * abs(xi - xj) / l, nu = lambda)
+    
+    ## version where ltrans = sqrt(2 * lambda) / l
+    
+    # FROM NOW ON l = ltrans
+    lambda <- 5/2
+    2^(1 - lambda) / gamma(lambda) * 
+      ( ltrans * abs(xi - xj) ) ^ lambda *
+      besselK( ltrans * abs(xi - xj), nu = lambda)
+    
+  }
+  
+  if (xi == xj) {
+    return(sig2)
+  } else {
+    return(sig2 * g(xi, xj, ltrans))
+  }
+  
+  }
+  
+  # R matrix for a vector of inputs 
+  Rmat <- function(x, sig2 = 1, l = 1) {
+  
+  R <- matrix(NA, nrow = length(x), ncol = length(x))
+  
+  for (i in 1:length(x)) { # I know this is inefficient
+    for (j in 1:length(x)) {
+      
+        R[i, j] <- r(xi = x[i], xj = x[j], sig2 = sig2, l = l)
+      
+    }
+  }
+  
+  return(R)
+  }
+  
+  diags <- Rmat(xstar, xprime)
+  Sti <- rbind(cbind(Rmat(xstar, xstar)), diags,
+               cbind(diags, Rmat(xprime, xprime)))
+  
+  return(dmvnorm(N, 
+                 mean = c(ystar.old, yprime.old), 
+                 sigma = qt*Sti))
+  
+}
+```
+
+```{r step by step}
+N <- 100  # particles
+n <- 20  # time
+tau <- seq(0, 10e-6, length.out = n-1)
+
+# 1. initialise (ith row = ith particle)
+particles.l <- matrix(1, ncol = 1, nrow = N)
+particles.sig2 <- matrix(1, ncol = 1, nrow = N)
+particles.ystar <- matrix(NA, ncol = length(xstar), nrow = N)
+particles.yprime <- matrix(NA, ncol = length(xprime), nrow = N)
+
+for (i in 1:N) {
+ particles.ystar[i,] <- ytrue(xstar) + rnorm(length(xstar)) 
+ particles.yprime[i,] <- 20 / (20*xprime + 1) + rnorm(length(xprime))
+}
+
+# 2. weights at time t = 1
+W1 <- rep(1/N, N)
+
+# 3. for t = 1,..., T-1
+## t = 1
+tmp <- rep(NA, N)
+Wt <- function(particles.yprime) {
+  wtildes <- prod( pnorm(tau[2] * particles.yprime) ) / 
+    prod( pnorm(tau[1] * particles.yprime) )
+  return(wtildes / sum(wtildes))
+}
+W1 <- apply(particles.yprime, MARGIN = 1, FUN = Wt)
+
+## resample with W1 (pointless when all 1s)
+resample <- sample(1:N, replace = TRUE, prob = W1)
+
+particles.l <- particles.l[resample]
+particles.sig2 <- particles.sig2[resample]
+particles.ystar <- particles.ystar[resample,]
+particles.yprime <- particles.yprime[resample,]
+
+## sample next time step i.e. t + 1
+### in parallel? or can propose all N at once
+library(mvtnorm)
+
+# R matrix for a vector of inputs 
+Rmat <- function(x1, x2, sig2 = 1, l = 1) {
+  
+  # r(., .) function (p6)
+  r <- function(xi, xj, sig2 = sig2, ltrans = sig2) {
+  
+  # g(.): from Matern classs of covariance functions
+  ## only need g = g_k because dim(x) = 1
+  ## modified bessel function of the second kind
+  ## https://stat.ethz.ch/pipermail/r-help/2002-December/027850.html
+  g <- function(xi, xj, ltrans) {
+    
+    # 2^(1 - lambda) / gamma(lambda) * 
+    #   ( sqrt(2 * lambda) * abs(xi - xj) / l ) ^ lambda *
+    #   besselK(sqrt(2 * lambda) * abs(xi - xj) / l, nu = lambda)
+    
+    ## version where ltrans = sqrt(2 * lambda) / l
+    
+    # FROM NOW ON l = ltrans
+    lambda <- 5/2
+    2^(1 - lambda) / gamma(lambda) * 
+      ( ltrans * abs(xi - xj) ) ^ lambda *
+      besselK( ltrans * abs(xi - xj), nu = lambda)
+    
+  }
+  
+  if (xi == xj) {
+    return(sig2)
+  } else {
+    return(sig2 * g(xi, xj, ltrans))
+  }
+  
+  }
+  
+  R <- matrix(NA, nrow = length(x1), ncol = length(x2))
+  
+  for (i in 1:length(x1)) { # I know this is inefficient
+    for (j in 1:length(x2)) {
+      
+      R[i, j] <- r(xi = x1[i], xj = x2[j], sig2 = sig2, l = l)
+      
+    }
+  }
+  
+  return(R)
+}
+
+posterior <- function(l, sig2, ystar, yprime, tau) {
+  # ystar, yprime are vectors
+  # \sqrt(2 * lambda) / l ~ chisquared(1)
+  lambda <- 5/2
+  
+  R.ystar.yprime <- Rmat(x1 = ystar, x2 = yprime, sig2 = sig2, l = l)
+  Sig <- rbind(cbind(Rmat(ystar, sig2 = sig2, l = l), R.ystar.yprime),
+               cbind(R.ystar.yprime, Rmat(yprime, sig2 = sig2, l = l)))
+  Sig.obs <- Rmat(y, sig2 = sig2, l = l)
+  
+  return( dchisq(sqrt(2 * lambda) / l, df = 1) * dchisq(sig2, df = 5) *
+            dmvnorm(c(ystar, yprime), mean = c(ystar, yprime), sigma = Sig) *
+            dmvnorm(y, mean = rep(0, length(y)), sigma = Sig.obs) *
+            prod( pnorm(tau * yprime) ) )
+  
+}
+
+posterior(l = 1, sig2 = 1, ystar = ytrue(xstar), yprime = 20 / (20 * xprime + 1), tau = 10e-6)
+
+l = 1; sig2 = 1; ystar = ytrue(xstar); yprime = 20 / (20 * xprime + 1); tau = 10e-6
+
+lnew <- Q1(N)
+hr.l <- 
+
+
+```
+
+
+
+```{r weights}
+# tau: rigidity of monotonicity constraint
+# 0 = tau1 < ... < tauT 
+# T == Time
+tauT <- 10e-6
+tau <- rep(NA, Time)
+# assume y1, 
+
+# Wt: weights for N particles at time t (i.e. N-length vector for each t)
+#w <- matrix(NA, nrow = N, ncol = Time)
+
+# update weights for each t
+update.weights <- function(w, t, tau, yprime) {
+  wtilde <- prod(pnorm(tau[t] * yprime)) / prod(pnorm(tau[t-1] * yprime))
+  
+  
+}
+
+
+```
+
+
+
+```{r}
+# covariance functions
+## dim(x) = 1
+
+
+
+ #############################################################
+
+# R matrix
+
+
+
+Rmat(x)
+## should the diags be NaN ??? qqq I think they should be the sig2???
+
+solve(Rmat(x))  # R inverse
+
+
+
+
+# predicting for 1 new input xstar
+
+# helpers
+## qqq pass in sig2, l???
+r.xstarX <- function(xstar, x) {
+  
+  mu <- rep(NA, length(x))  # mean vector for lik1
+  for (i in 1:length(x)) {
+    mu[i] <- r(xi = xstar, xj = x[i])
+  }
+  
+  return(mu)
+  
+}
+
+# r.xstar(xstar = xstar[3], x)
+
+```
+
+```{r naive joint posterior}
+# setup posterior kernel
+library(mvtnorm)
+
+post.kernel <- function(xstar, ystar, l, sig2, y, x) {
+  
+  # likelihood1
+  R <- Rmat(x = x, s2 = sig2, l = l)
+  Rinv <- solve(R)
+  r.xstar <- r.xstarX(xstar = xstar, x = x)
+  
+  mu.xstar <- r.xstar %*% Rinv %*% y
+  tau2.xstar <- r.xstar %*% Rinv %*% r.xstar
+  
+  likelihood1 <- dmvnorm(ystar, mean = mu.xstar, sigma = tau2.xstar)
+  
+  # likelihood2
+  likelihood2 <- dmvnorm(y, mean = rep(0, length(x)), sigma = R)  # qqq why is this zero...
+  
+  # priors
+  ## recall that l <- ltrans = sqrt(2 * lambda) / l ~ chi(1)
+  lambda <- 5/2
+  priors <- dchisq(l, df = 1) *
+    dchisq(sig2, df = 5)
+  
+  return( likelihood1 * likelihood2 * priors )
+}
+
+# MH
+
+MH.step <- function(Zold, newx, y, x) {
+  
+  Znew <- c(abs(rnorm(1, mean = Zold[1], sd = 0.01)),
+            abs(rnorm(1, mean = Zold[2], sd = 0.01)),
+            rnorm(1, mean = Zold[3], sd = 0.1))
+  HR <- post.kernel(xstar = newx, ystar = Znew[3], l = Znew[1], sig2 = Znew[2], y = y, x = x) / 
+    post.kernel(xstar = newx, ystar = Zold[3], l = Zold[1], sig2 = Zold[2], y = y, x = x)
+  
+  if (HR > runif(1)) {
+    Zi <- Znew
+  } else {
+    Zi <- Zold
+  }
+  
+  return(Zi)
+}
+
+MH.naive <- function(N = 100, newx = xstar[1], y, x) {
+  # N: chain length
+  Z <- matrix(NA, nrow = N, ncol = 3)
+  
+  # 1. initialise
+  Z0 <- c(0.5, 2, ytrue(newx))
+  
+  # 2. HR
+  ## first step
+  Z[1,] <- MH.step(Zold = Z0, newx = newx, y = y, x = x)
+  for (i in 2:nrow(Z)) {
+    Z[i,] <- MH.step(Zold = Z[i-1,], newx = newx, y = y, x = x)
+  }
+
+  return(Z)
+}
+
+# debugging
+ystar = Znew[3]; l = Znew[1]; sig2 = Znew[2]
+test <- MH.naive(N = 100, newx = xstar[1], y = y, x = x)
+```
+
