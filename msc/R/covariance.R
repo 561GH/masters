@@ -63,20 +63,80 @@ r <- function(xi, xj,
 }
 
 ################################################################################
-# Covariance matrix for a vector of inputs #####################################
+# Covariance matrix for a matrix of inputs #####################################
 ################################################################################
 
-Rmat <- function(x1, x2, sig2 = 1, l = 1) {
+covMatrix <- function(X,
+                      sig2,
+                      l = NULL, ltrans = NULL, lambda = 5/2,
+                      computing = "sequential") {
+  # X: n by d design matrix; each row is a d-dimensional input
+  # sig2: constant variance parameter; non-negative real number
+  # l: d dimensional length scale parameters; non-negative
+  # ltrans: \sqrt(2 * \lambda) / l; d-dimensional non-negative vector
+  # lambda: non-negative parameter
+  # computing: whether to compute sequentially or in parallel. Input is one
+  #   of \code{c("sequential", "parallel")}; default is "sequential".
+  # RETURN: n by n covariance matrix defined on p6
 
-  R <- matrix(NA, nrow = length(x1), ncol = length(x2))
+  # ERROR HANDLING #############################################################
 
-  for (i in 1:length(x1)) { # I know this is inefficient
-    for (j in 1:length(x2)) {
+  if (missing(X)) {stop("Argument X is missing.")}
+  if (!is.matrix(X)) {stop("Argument X must be a matrix.")}
+  if (nrow(X) < 2) {stop("X must have at least 2 rows (inputs).")}
 
-      R[i, j] <- r(xi = x1[i], xj = x2[j], sig2 = sig2, l = l)
+  if (missing(sig2)) {stop("Constant variance parameter sig2 missing.")}
 
-    }
+  if (is.null(l) & is.null(ltrans)) {
+    stop("Length scale parameter l or ltrans missing.")
+  }
+  if (!is.null(l) & !is.null(ltrans)) {
+    stop("Specify length scale parameter as either l or ltrans, not both.")
   }
 
-  return(R)
+  # always work with ltrans ####################################################
+  if (is.null(ltrans)) {ltrans <- sqrt(2 * lambda) / l}
+  if (ncol(X) != length(ltrans)) {
+    stop("ltrans must be same dimensions as the inputs i.e. ncol(X).")
+  }
+
+  # PARALLEL COMPUTING #########################################################
+  computing <- match.arg(arg = computing,
+                         choices = c("sequential", "parallel"),
+                         several.ok = FALSE)
+
+  if (computing == "sequential") { # suppress irritating warning message for seq
+    foreach::registerDoSEQ()
+  } else if (foreach::getDoParWorkers() == 1) {
+    cat("Selected parallel computing, but only 1 execution worker
+        in the currently registered doPar backend.")
+  }
+
+  ##############################################################################
+
+  n <- nrow(X)  # total number of inputs
+  out <- matrix(NA, nrow = n, ncol = n)
+
+  ## calculate off-diagonal entries column-wise
+  ## (column-wise because of upper.tri() function)
+  entries <- foreach(j = 2:n, .combine = "cbind", .inorder = FALSE) %:%
+    foreach(i = 1:(j-1), .combine = "cbind", .inorder = FALSE) %dopar% {
+      # second
+      r(X[i,], X[j,], sig2 = sig2, l = l, ltrans = ltrans, lambda = lambda)
+    }
+
+  ## fill off-diagonals
+  if (length(entries) > 1) { # or n == 2
+    out[upper.tri(out)] <- entries
+    out <- t(out)
+    out[upper.tri(out)] <- entries
+  } else {
+    out[1, 2] <- out[2, 1] <- entries
+  }
+
+  ## fill diagonals
+  diag(out) <- sig2
+
+  return(out)
+
 }
