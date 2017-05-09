@@ -1,0 +1,7 @@
+meetings:
+	170508:
+		- lock for code for golchi 2014 monotone emulation  @done
+			none from google; something on her personal site but not exactly
+		- priors can determine whether the answers you get out are sensible (not really bayesian but whatever)
+		- can use sample unscaled variance of the observations to decide how to distribute variance across different parts of the model. i.e. say certain amount on physics model, some on discrepancy, some on random error
+		- scaled random walk just needs to be a symmetric distribution
