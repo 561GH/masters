@@ -1,6 +1,7 @@
 ################################################################################
 # Covariance of yi, yj with inputs xi, xj respectively #########################
 ################################################################################
+#' @export
 r <- function(xi, xj,
               sig2,
               l = NULL, ltrans = NULL, lambda = 5/2) {
@@ -65,7 +66,8 @@ r <- function(xi, xj,
 ################################################################################
 # Covariance matrix for a matrix of inputs #####################################
 ################################################################################
-
+#' @import foreach
+#' @export
 covMatrix <- function(X,
                       sig2,
                       l = NULL, ltrans = NULL, lambda = 5/2,
@@ -120,6 +122,8 @@ covMatrix <- function(X,
 
   ## calculate off-diagonal entries column-wise
   ## (column-wise because of upper.tri() function)
+  ## make i, j globally bound -.-
+  i <- j <- NULL
   entries <- foreach(j = 2:n, .combine = "cbind", .inorder = FALSE) %:%
     foreach(i = 1:(j-1), .combine = "cbind", .inorder = FALSE) %dopar% {
       r(X[i,], X[j,], sig2 = sig2, ltrans = ltrans, lambda = lambda)

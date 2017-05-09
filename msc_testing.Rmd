@@ -8,6 +8,7 @@ X <- matrix(rnorm(n^2), ncol = n)
 sig2 <- 1
 l <- rep(1, n)
 test <- covMatrix(X = X, sig2 = sig2, l = l)
+test
 ```
 
 ```{r}
@@ -17,6 +18,7 @@ X <- matrix(rnorm(n^2), ncol = n)
 sig2 <- 1
 l <- rep(1, n)
 test <- covMatrix(X = X, sig2 = sig2, l = l)
+test
 ```
 
 
