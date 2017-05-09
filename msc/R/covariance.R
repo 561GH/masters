@@ -83,6 +83,7 @@ covMatrix <- function(X,
 
   if (missing(X)) {stop("Argument X is missing.")}
   if (!is.matrix(X)) {stop("Argument X must be a matrix.")}
+  if (!is.numeric(X)) {stop("Argument X must contain only numeric values.")}
   if (nrow(X) < 2) {stop("X must have at least 2 rows (inputs).")}
 
   if (missing(sig2)) {stop("Constant variance parameter sig2 missing.")}
@@ -121,8 +122,7 @@ covMatrix <- function(X,
   ## (column-wise because of upper.tri() function)
   entries <- foreach(j = 2:n, .combine = "cbind", .inorder = FALSE) %:%
     foreach(i = 1:(j-1), .combine = "cbind", .inorder = FALSE) %dopar% {
-      # second
-      r(X[i,], X[j,], sig2 = sig2, l = l, ltrans = ltrans, lambda = lambda)
+      r(X[i,], X[j,], sig2 = sig2, ltrans = ltrans, lambda = lambda)
     }
 
   ## fill off-diagonals

@@ -1,0 +1,23 @@
+# Testing functions
+
+## tests for covMatrix()
+```{r}
+## n > 2
+n <- 3
+X <- matrix(rnorm(n^2), ncol = n)
+sig2 <- 1
+l <- rep(1, n)
+test <- covMatrix(X = X, sig2 = sig2, l = l)
+```
+
+```{r}
+## n = 2
+n <- 2
+X <- matrix(rnorm(n^2), ncol = n)
+sig2 <- 1
+l <- rep(1, n)
+test <- covMatrix(X = X, sig2 = sig2, l = l)
+```
+
+
+
