@@ -3,11 +3,9 @@
 ################################################################################
 #' @export
 r <- function(xi, xj,
-              sig2,
               l = NULL, ltrans = NULL, lambda = 5/2) {
 
   # xi, xj: d dimensional vectors
-  # sig2: constant variance parameter; non-negative real number
   # l: d dimensional length scale parameters; non-negative
   # ltrans: \sqrt(2 * \lambda) / l; d-dimensional non-negative vector
   # lambda: non-negative parameter
@@ -16,8 +14,6 @@ r <- function(xi, xj,
   # ERROR HANDLING #############################################################
   if (missing(xi) || missing(xj)) {stop("Arguments xi, xj are missing.")}
   if (length(xi) != length(xj)) {stop("Vectors xi, xj must be same length.")}
-
-  if (missing(sig2)) {stop("Constant variance parameter sig2 missing.")}
 
   if (is.null(l) & is.null(ltrans)) {
     stop("Length scale parameter l or ltrans missing.")
@@ -57,7 +53,7 @@ r <- function(xi, xj,
 
   # xi != xj ###################################################################
   xixjltrans <- cbind(xi, xj, ltrans)
-  covxixj <- sig2 * prod( apply(xixjltrans, MARGIN = 1, FUN = g) )
+  covxixj <- prod( apply(xixjltrans, MARGIN = 1, FUN = g) )
 
   return(covxixj)
 
@@ -126,7 +122,7 @@ covMatrix <- function(X,
   i <- j <- NULL
   entries <- foreach(j = 2:n, .combine = "cbind", .inorder = FALSE) %:%
     foreach(i = 1:(j-1), .combine = "cbind", .inorder = FALSE) %dopar% {
-      r(X[i,], X[j,], sig2 = sig2, ltrans = ltrans, lambda = lambda)
+      r(X[i,], X[j,], ltrans = ltrans, lambda = lambda)
     }
 
   ## fill off-diagonals
@@ -139,8 +135,8 @@ covMatrix <- function(X,
   }
 
   ## fill diagonals
-  diag(out) <- sig2
+  diag(out) <- 1
 
-  return(out)
+  return(sig2 * out)
 
 }

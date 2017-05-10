@@ -3,22 +3,31 @@
 ## tests for covMatrix()
 ```{r}
 ## n > 2
+set.seed(761)
 n <- 3
 X <- matrix(rnorm(n^2), ncol = n)
 sig2 <- 1
 l <- rep(1, n)
 test <- covMatrix(X = X, sig2 = sig2, l = l)
 test
+#              [,1]         [,2]         [,3]
+# [1,] 1.000000e+00 2.259359e-02 3.853816e-05
+# [2,] 2.259359e-02 1.000000e+00 9.133891e-08
+# [3,] 3.853816e-05 9.133891e-08 1.000000e+00
 ```
 
 ```{r}
 ## n = 2
+set.seed(761)
 n <- 2
 X <- matrix(rnorm(n^2), ncol = n)
 sig2 <- 1
 l <- rep(1, n)
 test <- covMatrix(X = X, sig2 = sig2, l = l)
 test
+#           [,1]      [,2]
+# [1,] 1.0000000 0.5694542
+# [2,] 0.5694542 1.0000000
 ```
 
 
