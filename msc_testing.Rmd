@@ -1,5 +1,17 @@
 # Testing functions
 
+## testing g(.)
+```{r}
+lambda <- 5/2
+l <- 1
+ltrans <- sqrt(2 * lambda) / l
+xik <- 3
+xjk <- 11
+# see comments in r(., .)
+```
+
+
+
 ## tests for covMatrix()
 ```{r}
 ## n > 2

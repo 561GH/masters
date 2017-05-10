@@ -44,9 +44,14 @@ r <- function(xi, xj,
     xjk <- input[2]
     ltransk <- input[3]
 
+    ## for general lambda
     2^(1 - lambda) / gamma(lambda) *
       ( ltrans * abs(xik - xjk) ) ^ lambda *
-      besselK( ltrans * abs(xi - xj), nu = lambda)
+      besselK( ltrans * abs(xik - xjk), nu = lambda)
+
+    ## for lambda = 5/2; used to check if the above is correct
+    # (1 + ltrans * abs(xik - xjk) + 1/3 * (ltrans * abs(xik - xjk))^2) *
+    #   exp(-ltrans * abs(xik - xjk))
 
   }
   # g FUNTION END ##############################################################
