@@ -29,7 +29,7 @@ r <- function(xi, xj,
   }
 
   # if xi == xj ################################################################
-  if (isTRUE(all.equal(xi, xj))) {return(sig2)}
+  if (isTRUE(all.equal(xi, xj))) {return(1)}  # multiply by sig2 in covMatrix()
 
   # g FUNCTION START ###########################################################
   # g(.): from Matern classs of covariance functions
