@@ -1,0 +1,51 @@
+# GP example
+
+```{r}
+library(mvtnorm)
+
+# goal
+curve(sin(x), from = 0, to = 2*pi, lwd = 2)
+
+# prior
+N <- 50
+grid <- matrix(seq(0, 2*pi, length.out = N), nrow = N)
+Kff <- covMatrix(X = grid, sig2 = 1, l = 1)
+prior.draws <- rmvnorm(5, mean = rep(0, N), sigma = Kff)
+
+for (i in 1:nrow(prior.draws)) {
+  points(x = grid, y = prior.draws[i,], type = "l", col = i)
+}
+
+# observations
+x <- c(0, 2, 5, 6)
+x <- matrix(x, nrow = length(x))
+y <- sin(x)
+points(x = x, y = y, pch = 16, col = "green", cex = 3)
+
+Kfy.joint <- covMatrix(X = rbind(grid, x), sig2 = 1, l = 1)
+Kyy <- covMatrix(X = x, sig2 = 1, l = 1)
+Kfy <- Kfy.joint[1:N, (N+1):ncol(Kfy.joint)]
+
+# posterior
+post.mean <- Kfy %*% solve(Kyy) %*% (y - 0)
+points(x = grid, y = post.mean, type = "l", col = "purple", lwd = 2)
+
+post.covar <- Kff - Kfy %*% solve(Kyy) %*% t(Kfy)
+posterior.draws <- rmvnorm(5, mean = post.mean, sigma = post.covar)
+
+for (i in 1:nrow(posterior.draws)) {
+  points(x = grid, y = posterior.draws[i,], type = "l", col = "pink", lwd = 2)
+}
+
+points(x = x, y = y, pch = 16, col = "green", cex = 3)
+
+# predictive distribution
+```
+
+```{r}
+
+
+
+
+```
+
