@@ -57,6 +57,8 @@ for (i in 1:nrow(pred.draws)) {
   points(x = xstar, y = pred.draws[i,], col = "red")
 }
 
+# note predictictions have wider uncertainty than the posterior
+
 points(x = grid, y = post.mean, type = "l", col = "purple", lwd = 2)
 points(x = x, y = y, pch = 16, col = "green", cex = 3)
 ```
