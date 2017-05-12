@@ -10,8 +10,6 @@ xjk <- 11
 # see comments in r(., .)
 ```
 
-
-
 ## tests for covMatrix()
 ```{r}
 ## n > 2
@@ -42,5 +40,17 @@ test
 # [2,] 0.5694542 1.0000000
 ```
 
+# trying to understand the Matern covariance
+```{r}
+xi <- 0
+xj <- seq(0, 10, length.out = 100)
+covar.vals <- NULL
+for (i in 1:length(xj)) {
+  covar.vals <- c(covar.vals, r(xi = xi, xj = xj[i], l = 1))
+}
+plot(x = abs(xi - xj), y = covar.vals, pch = 16)
+
+## squared exponential 
+```
 
 
