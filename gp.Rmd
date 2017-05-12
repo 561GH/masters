@@ -4,7 +4,7 @@
 library(mvtnorm)
 
 # goal
-curve(sin(x), from = 0, to = 2*pi, lwd = 2)
+curve(sin(x), from = 0, to = 2*pi, lwd = 3, ylim = c(-1.5, 1.5))
 
 # prior
 N <- 50
@@ -13,11 +13,11 @@ Kff <- covMatrix(X = grid, sig2 = 1, l = 1)
 prior.draws <- rmvnorm(5, mean = rep(0, N), sigma = Kff)
 
 for (i in 1:nrow(prior.draws)) {
-  points(x = grid, y = prior.draws[i,], type = "l", col = i)
+  points(x = grid, y = prior.draws[i,], type = "l", col = "gray")
 }
 
 # observations
-x <- c(0, 2, 5, 6)
+x <- 0:6
 x <- matrix(x, nrow = length(x))
 y <- sin(x)
 points(x = x, y = y, pch = 16, col = "green", cex = 3)
@@ -40,6 +40,25 @@ for (i in 1:nrow(posterior.draws)) {
 points(x = x, y = y, pch = 16, col = "green", cex = 3)
 
 # predictive distribution
+xstar <- c(0.5, 1.5, 3.5, 4.5, 5.5, 2*pi)
+xstar <- matrix(xstar, nrow = length(xstar))
+points(x = xstar, y = sin(xstar), pch = 16, col = "red")
+Kystary.full <- covMatrix(X = rbind(xstar, x), sig2 = 1, l = 1)
+Kystary <- Kystary.full[1:length(xstar), (length(xstar) + 1):ncol(Kystary.full)]
+Kystarystar <- covMatrix(X = xstar, sig2 = 1, l = 1)
+
+pred.mean <- Kystary %*% solve(Kyy) %*% (y - 0)
+points(x = xstar, y = pred.mean, col = "red", cex = 2)
+
+pred.covar <- Kystarystar - Kystary %*% solve(Kyy) %*% t(Kystary)
+pred.draws <- rmvnorm(5, mean = pred.mean, sigma = pred.covar)
+
+for (i in 1:nrow(pred.draws)) {
+  points(x = xstar, y = pred.draws[i,], col = "red")
+}
+
+points(x = grid, y = post.mean, type = "l", col = "purple", lwd = 2)
+points(x = x, y = y, pch = 16, col = "green", cex = 3)
 ```
 
 ```{r}
