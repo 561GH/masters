@@ -5,3 +5,9 @@ meetings:
 		- priors can determine whether the answers you get out are sensible (not really bayesian but whatever)
 		- can use sample unscaled variance of the observations to decide how to distribute variance across different parts of the model. i.e. say certain amount on physics model, some on discrepancy, some on random error
 		- scaled random walk just needs to be a symmetric distribution
+	170512:
+		- GP = regression with correlated errors
+		- just accept that the derivative of a GP is a GP
+		- can choose GP correlation function such that a GP can approximate non-differentiable stuff
+			- still need knowledge of what the function should look like or lots of samples though
+		- standardise data... might be close enough GP
