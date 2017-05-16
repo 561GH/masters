@@ -2,7 +2,7 @@
 
 library(mvtnorm)
 
-posterior <- function(l, sig2,
+log.posterior <- function(l, sig2,
                       ystar, yprime, y,
                       xstar, xprime, x) {
 
