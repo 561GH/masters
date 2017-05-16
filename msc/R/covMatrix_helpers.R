@@ -186,8 +186,8 @@ r.matern2 <- function(xi, xj,
 
     ## for lambda = 5/2
     1/3 * ltrans^2 * (1 + ltrans * abs(xik - xjk) -
-                        1 / 2 * (ltrans * abs(xik - xjk))^2 ) *
-      exp( -ltrans * abs(xik - xjk) * sign(xik - xjk) )
+                        0.5 * (ltrans * abs(xik - xjk))^2 ) *
+      exp( -ltrans * abs(xik - xjk) ) * sign(xik - xjk)
 
   }
   # g FUNCTION END #############################################################
