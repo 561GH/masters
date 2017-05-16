@@ -41,6 +41,23 @@ covMatrix(X = X, sig2 = sig2, covar.fun = r.matern2, l = l)
 # [3,] 9.736003e-07 -5.547833e-09  1.000000e+00
 ```
 
+## testing whether errors are thrown correctly
+```{r}
+set.seed(761)
+n <- 3
+X <- matrix(rnorm(n^2), ncol = n)
+sig2 <- 1
+l <- rep(1, n)
+
+# no l or ltrans argument
+covMatrix(X = X, sig2 = sig2, covar.fun = r.matern)  
+ # Error in { : 
+ #  task 1 failed - "Length scale parameter l or ltrans missing." 
+# - hooray and we know exactly what's wrong due to error handling in r.matern
+```
+
+
+
 ```{r}
 ## n = 2
 set.seed(761)
