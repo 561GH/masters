@@ -3,11 +3,19 @@
 library(mvtnorm)
 
 log.posterior <- function(l, sig2,
-                      ystar, yprime, y,
-                      xstar, xprime, x) {
+                          ystar, yprime,
+                          given) {
 
+  # given = list(y = y, xstar = xstar, xprime = xprime, x = x)
   # xstar, xprime, x: careful likely have to cbind() themn to make them columns
 
+  ## unpacking given
+  y <- given$y
+  xstar <- given$xstar
+  xprime <- given$xprime
+  x <- given$x
+
+  ## means and covariances
   m <- c(rep(mean(ystar), length(ystar)),
          rep(mean(yprime), length(yprime)))
   my <- rep(mean(y), length(y))
@@ -25,3 +33,4 @@ log.posterior <- function(l, sig2,
             log.d.ystaryprime + log.d.y )
 
 }
+

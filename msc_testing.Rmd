@@ -128,4 +128,16 @@ plot(x = abs(xi - xj), y = covar.vals, pch = 16)
 ## squared exponential 
 ```
 
+# eta0 small tests
+
+## testing log.posterior
+```{r}
+post.args <- list(l = 5,
+                  sig2 = 1,
+                  ystar = ytrue(xstar),
+                  yprime = 20 / (20 * xprime),
+                  given = given )
+
+do.call(log.posterior, post.args)  # -6.652496e+14
+```
 
