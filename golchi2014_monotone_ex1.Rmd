@@ -19,6 +19,9 @@ xstar <- seq(0, 1, length.out = 50)
 
 # derivative set inputs
 xprime <- c(0.42, 0.47, 0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87)  
+
+given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar), 
+              y = y)
 ```
 
 ```{r plots}
