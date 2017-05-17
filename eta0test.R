@@ -19,7 +19,7 @@ given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar),
 
 ## start MH within gibbs
 
-eta.init <- list(l = 5, sig2 = 1,
+eta.init <- list(l = 5.7, sig2 = 1500,
                  ystar = ytrue(xstar),
                  yprime = 20 / (20 * xprime))
 
@@ -54,16 +54,54 @@ for (i in 1:N) {
                   sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
                   given = given)
 
+  cat("lnew logHR:", logHR, "\n")
+
   if (logHR > log(runif(1))) {
     chain.l[i] <- lnew
   } else {
     chain.l[i] <- lold
   }
 
-  lold <- chain.l[i]
+  lcurrent <- chain.l[i]
 
   ## UPDATE sig2 ###############################################################
+  sig2new <- rgamma(1, shape = sig2old/2, scale = 2)
+  logHR <- log.posterior(l = lcurrent, sig2 = sig2new,
+                         ystar = ystarold, yprime = yprimeold,
+                         given = given) -
+    log.posterior(l = lcurrent, sig2 = sig2old,
+                  ystar = ystarold, yprime = yprimeold,
+                  given = given)
+
+  cat("sig2new logHR:", logHR, "\n")
+
+  if (logHR > log(runif(1))) {
+    chain.sig2[i] <- sig2new
+  } else {
+    chain.sig2[i] <- sig2old
+  }
+
+  sig2current <- chain.sig2[i]
 
   ## UPDATE ystaryprime ########################################################
+
+
+  ystaryprimenew <- rmvnorm(1, mean = mystatyprime, sigma = v2 * S)
+  logHR <- log.posterior(l = lcurrent, sig2 = sig2new,
+                         ystar = ystarold, yprime = yprimeold,
+                         given = given) -
+    log.posterior(l = lcurrent, sig2 = sig2old,
+                  ystar = ystarold, yprime = yprimeold,
+                  given = given)
+
+  cat("sig2new logHR:", logHR, "\n")
+
+  if (logHR > log(runif(1))) {
+    chain.sig2[i] <- sig2new
+  } else {
+    chain.sig2[i] <- sig2old
+  }
+
+  sig2current <- chain.sig2[i]
 
 }
