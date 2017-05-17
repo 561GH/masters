@@ -4,15 +4,15 @@
 ytrue <- function(x) {log(20*x + 1)}  # x > -1/20
 
 # inputs where fcn evaluated
-x <- c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1)
+x <- cbind(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1))
 # true/known model values
 y <- ytrue(x)
 
 # prediction set inputs
-xstar <- seq(0, 1, length.out = 50)
+xstar <- cbind(seq(0, 1, length.out = 50))
 
 # derivative set inputs
-xprime <- c(0.42, 0.47, 0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87)
+xprime <- cbind(c(0.42, 0.47, 0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87))
 
 given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar),
               y = y)
@@ -84,7 +84,12 @@ for (i in 1:N) {
   sig2current <- chain.sig2[i]
 
   ## UPDATE ystaryprime ########################################################
-
+  S11 <- covMatrix(X = xstar, sig2 = sig2, covar.fun = r.matern, l = l)
+  S22 <- covMatrix(X = xprime, sig2 = sig2, covar.fun = r.matern2, l = l)
+  S12 <- covMatrix(X = xstar, X2 = xprime,
+                   sig2 = sig2, covar.fun = r.matern1, l = l)
+  S <- rbind(cbind(S11, S12),
+             cbind(t(S12), S22))
 
   ystaryprimenew <- rmvnorm(1, mean = mystatyprime, sigma = v2 * S)
   logHR <- log.posterior(l = lcurrent, sig2 = sig2new,
