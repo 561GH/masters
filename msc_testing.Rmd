@@ -151,7 +151,7 @@ post.args <- list(l = 5.7,  # 5.7
                   yprime = 20 / (20 * xprime),
                   given = given)
 
-do.call(log.posterior, post.args)  # -6080.763
+do.call(logposterior, post.args)  # -6080.763
 ```
 
 ```{r}

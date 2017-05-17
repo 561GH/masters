@@ -19,11 +19,12 @@ given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar),
 
 ## start MH within gibbs
 
-eta.init <- list(l = 5.7, sig2 = 1500,
+eta.init <- list(l = 10, sig2 = 1,
                  ystar = ytrue(xstar),
                  yprime = 20 / (20 * xprime))
 
-N <- 100
+set.seed(761)
+N <- 10
 v1 <- 1
 v2 <- 1
 chain.l <- rep(NA, N)
@@ -31,6 +32,7 @@ chain.sig2 <- rep(NA, N)
 chain.ystar <- matrix(NA, nrow = length(xstar), ncol = N)
 chain.yprime <- matrix(NA, nrow = length(xprime), ncol = N)
 
+#out <- capture.output(
 for (i in 1:N) {
 
   cat("Starting iteration:", i, "\n")
@@ -49,36 +51,55 @@ for (i in 1:N) {
 
   ## UPDATE l ##################################################################
   lnew <- rnorm(1, mean = lold, sd = v1)
-  logHR <- log.posterior(l = lnew,
-                      sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
-                      given = given) -
-    log.posterior(l = lold,
-                  sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
-                  given = given)
 
-  cat("lnew logHR:", logHR, "\n")
+  if (lnew > 0) {
 
-  if (logHR > log(runif(1))) {
-    chain.l[i] <- lnew
+    logHR <- logposterior(l = lnew,
+                           sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
+                           given = given) -
+      logposterior(l = lold,
+                    sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
+                    given = given)
+
+    cat("lnew logHR:", logHR, "\n")
+
+    if ( !is.nan(logHR) & !is.na(logHR) ) {  # when have -Inf - Inf get NaN
+
+      if ( logHR > log(runif(1)) )  {
+        chain.l[i] <- lnew
+      } else {
+        chain.l[i] <- lold
+      }
+
+    }
+
   } else {
+
     chain.l[i] <- lold
+
   }
 
   lcurrent <- chain.l[i]
 
   ## UPDATE sig2 ###############################################################
   sig2new <- rgamma(1, shape = sig2old/2, scale = 2)
-  logHR <- log.posterior(l = lcurrent, sig2 = sig2new,
+  logHR <- logposterior(l = lcurrent, sig2 = sig2new,
                          ystar = ystarold, yprime = yprimeold,
                          given = given) -
-    log.posterior(l = lcurrent, sig2 = sig2old,
+    logposterior(l = lcurrent, sig2 = sig2old,
                   ystar = ystarold, yprime = yprimeold,
                   given = given)
 
   cat("sig2new logHR:", logHR, "\n")
 
-  if (logHR > log(runif(1))) {
-    chain.sig2[i] <- sig2new
+  if ( !is.nan(logHR) & !is.na(logHR) ) {
+
+    if (logHR > log(runif(1))) {
+      chain.sig2[i] <- sig2new
+    } else {
+      chain.sig2[i] <- sig2old
+    }
+
   } else {
     chain.sig2[i] <- sig2old
   }
@@ -102,24 +123,51 @@ for (i in 1:N) {
   ystarnew <- ystaryprimenew[1:length(xstar)]
   yprimenew <- ystaryprimenew[(length(xstar)+1):length(ystaryprimenew)]
 
-  logHR <- log.posterior(l = lcurrent, sig2 = sig2current,
+  logHR <- logposterior(l = lcurrent, sig2 = sig2current,
                          ystar = ystarnew, yprime = yprimenew,
                          S = S,
                          given = given) -
-    log.posterior(l = lcurrent, sig2 = sig2current,
+    logposterior(l = lcurrent, sig2 = sig2current,
                   ystar = ystarold, yprime = yprimeold,
                   given = given)
 
   cat("ystarynew logHR:", logHR, "\n")
 
-  if (logHR > log(runif(1))) {
-    chain.ystar[,i] <- ystarnew
-    chain.yprime[,i] <- yprimenew
+  if ( !is.nan(logHR) & !is.na(logHR) ) {
+
+    if (logHR > log(runif(1))) {
+      chain.ystar[,i] <- ystarnew
+      chain.yprime[,i] <- yprimenew
+    } else {
+      chain.ystar[,i] <- ystarold
+      chain.yprime[,i] <- yprimeold
+    }
+
   } else {
     chain.ystar[,i] <- ystarold
     chain.yprime[,i] <- yprimeold
   }
 
-  cat("Finished iteration:", i, "\n")
+  cat("Finished iteration:", i, "\n \n")
 
 }
+#)
+
+
+# after MH within Gibbs
+chains <- list(eta.init = eta.init,
+               chain.l = chain.l,
+               chain.sig2 = chain.sig2,
+               chain.ystar = chain.ystar,
+               chain.yprime = chain.yprime)
+saveRDS(chains, file = "/Users/ggh/Git/masters/eta0out.rds")
+
+chain.l
+chain.sig2
+cbind(eta.init$yprime, chain.yprime)
+
+head(cbind(eta.init$ystar, chain.ystar))
+pred.ystar <- apply(chain.ystar, MARGIN = 1, FUN = mean)
+cbind(eta.init$ystar, pred.ystar)
+
+

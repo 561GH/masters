@@ -27,8 +27,9 @@ given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar),
 ```{r plots}
 # GOAL: (l, sig2, ystar1,... ystar50, yprime1, ..., yprime10)
 plot(x, ytrue(x), pch = 16, cex = 2)
-points(xstar, ytrue(xstar), pch = 16, col = "green")
 curve(ytrue, add = TRUE)
+points(xstar, ytrue(xstar), pch = 16, col = "green")
+points(xstar, pred.ystar, col = "red")
 ```
 
 ```{r proposal distributions}
