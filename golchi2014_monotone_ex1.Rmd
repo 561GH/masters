@@ -29,7 +29,7 @@ given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar),
 plot(x, ytrue(x), pch = 16, cex = 2)
 curve(ytrue, add = TRUE)
 points(xstar, ytrue(xstar), pch = 16, col = "green")
-points(xstar, pred.ystar, col = "red")
+points(xstar, chain.ystar[,10], col = "red")
 ```
 
 ```{r proposal distributions}
