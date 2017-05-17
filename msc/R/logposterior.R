@@ -1,6 +1,7 @@
 # MH within Gibbs for eta0
 
-library(mvtnorm)
+#' @import mvtnorm
+#' @export
 
 log.posterior <- function(l, sig2,
                           ystar, yprime,
@@ -46,8 +47,8 @@ log.posterior <- function(l, sig2,
   log.d.ystaryprime <- dmvnorm(c(ystar, yprime), mean = m, sigma = S, log = TRUE)
   log.d.y <- dmvnorm(as.numeric(y), mean = my, sigma = Syy, log = TRUE)
 
-  cat("log.d.ystaryprime:", log.d.ystaryprime, "\n")
-  cat("log.d.y:", log.d.y, "\n")
+  # cat("log.d.ystaryprime:", log.d.ystaryprime, "\n")
+  # cat("log.d.y:", log.d.y, "\n")
 
   return( log( dchisq(sqrt(5) / l, df = 1) ) + log( dchisq(sig2, df = 5) ) +
             log.d.ystaryprime + log.d.y )
