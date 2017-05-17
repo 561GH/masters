@@ -152,7 +152,7 @@ for (i in 1:N) {
 
 }
 #)
-
+# saveRDS(out, file = "/Users/ggh/Git/masters/eta0out.rds")
 
 # after MH within Gibbs
 chains <- list(eta.init = eta.init,
@@ -160,7 +160,8 @@ chains <- list(eta.init = eta.init,
                chain.sig2 = chain.sig2,
                chain.ystar = chain.ystar,
                chain.yprime = chain.yprime)
-saveRDS(chains, file = "/Users/ggh/Git/masters/eta0out.rds")
+saveRDS(chains, file = "/Users/ggh/Git/masters/eta0chains.rds")
+
 
 chain.l
 chain.sig2
