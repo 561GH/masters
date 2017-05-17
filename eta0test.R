@@ -33,6 +33,8 @@ chain.yprime <- matrix(NA, nrow = length(xprime), ncol = N)
 
 for (i in 1:N) {
 
+  cat("Starting iteration:", i, "\n")
+
   if (i == 1) {
     lold <- eta.init$l
     sig2old <- eta.init$sig2
@@ -84,29 +86,39 @@ for (i in 1:N) {
   sig2current <- chain.sig2[i]
 
   ## UPDATE ystaryprime ########################################################
-  S11 <- covMatrix(X = xstar, sig2 = sig2, covar.fun = r.matern, l = l)
-  S22 <- covMatrix(X = xprime, sig2 = sig2, covar.fun = r.matern2, l = l)
-  S12 <- covMatrix(X = xstar, X2 = xprime,
-                   sig2 = sig2, covar.fun = r.matern1, l = l)
+  S11 <- covMatrix(X = xstar, sig2 = sig2current,
+                   covar.fun = r.matern, l = lcurrent)
+  S22 <- covMatrix(X = xprime, sig2 = sig2current,
+                   covar.fun = r.matern2, l = lcurrent)
+  S12 <- covMatrix(X = xstar, X2 = xprime, sig2 = sig2current,
+                   covar.fun = r.matern1, l = lcurrent)
   S <- rbind(cbind(S11, S12),
              cbind(t(S12), S22))
+  #
+  # Syy <- covMatrix(X = x, sig2 = sig2, covar.fun = r.matern, l = l)
 
   ystaryprimenew <- rmvnorm(1, mean = mystatyprime, sigma = v2 * S)
-  logHR <- log.posterior(l = lcurrent, sig2 = sig2new,
-                         ystar = ystarold, yprime = yprimeold,
+  ystarnew <- ystaryprimenew[1:length(xstar)]
+  yprimenew <- ystaryprimenew[(length(xstar)+1):length(ystaryprimenew)]
+
+  logHR <- log.posterior(l = lcurrent, sig2 = sig2current,
+                         ystar = ystarnew, yprime = yprimenew,
+                         S = S,
                          given = given) -
-    log.posterior(l = lcurrent, sig2 = sig2old,
+    log.posterior(l = lcurrent, sig2 = sig2current,
                   ystar = ystarold, yprime = yprimeold,
                   given = given)
 
-  cat("sig2new logHR:", logHR, "\n")
+  cat("ystarynew logHR:", logHR, "\n")
 
   if (logHR > log(runif(1))) {
-    chain.sig2[i] <- sig2new
+    chain.ystar[,i] <- ystarnew
+    chain.yprime[,i] <- yprimenew
   } else {
-    chain.sig2[i] <- sig2old
+    chain.ystar[,i] <- ystarold
+    chain.yprime[,i] <- yprimeold
   }
 
-  sig2current <- chain.sig2[i]
+  cat("Finished iteration:", i, "\n")
 
 }
