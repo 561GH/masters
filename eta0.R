@@ -36,8 +36,8 @@ log.posterior <- function(l, sig2,
   log.d.ystaryprime <- dmvnorm(c(ystar, yprime), mean = m, sigma = S, log = TRUE)
   log.d.y <- dmvnorm(y, mean = my, sigma = Syy, log = TRUE)
 
-  cat("log.d.ystaryprime:", log.d.ystaryprime)
-  cat("log.d.y:", log.d.y)
+  cat("log.d.ystaryprime:", log.d.ystaryprime, "\n")
+  cat("log.d.y:", log.d.y, "\n")
 
   return( log( dchisq(sqrt(5) / l, df = 1) ) + log( dchisq(sig2, df = 5) ) +
             log.d.ystaryprime + log.d.y )

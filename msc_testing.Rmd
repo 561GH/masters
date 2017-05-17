@@ -52,7 +52,7 @@ X2 <- matrix(rnorm(n2 * d), ncol = d)
 sig2 <- 1
 l <- rep(1, d)
 
-covMatrix(X = X, X2 = X2, sig2 = sig2, covar.fun = r.matern, l = l)
+Sxx2 <- covMatrix(X = X, X2 = X2, sig2 = sig2, covar.fun = r.matern, l = l)
 #              [,1]         [,2]         [,3]         [,4]         [,5]
 # [1,] 9.130506e-05 3.827716e-03 2.450871e-04 2.287981e-06 0.2392954302
 # [2,] 2.385852e-05 1.635486e-01 5.011175e-08 8.289889e-08 0.0155601739
@@ -60,6 +60,19 @@ covMatrix(X = X, X2 = X2, sig2 = sig2, covar.fun = r.matern, l = l)
 
 check <- covMatrix(X = rbind(X, X2), sig2 = sig2, covar.fun = r.matern, l = l)
 check[1:n, (d+1):ncol(check)]  # should match above 
+
+# check transpose
+Sx2x <- covMatrix(X = X2, X2 = X, sig2 = sig2, covar.fun = r.matern, l = l)
+all.equal(Sxx2, t(Sx2x))
+
+# check for derivative 
+Sxx2 <- covMatrix(X = X, X2 = X2, sig2 = sig2, covar.fun = r.matern2, l = l)
+#               [,1]          [,2]          [,3]          [,4]          [,5]
+# [1,]  1.322868e-04 -6.318676e-03 -1.272285e-03 -3.080564e-06  0.0019702376
+# [2,]  7.777405e-06  8.959285e-05 -1.650897e-06 -2.498250e-15 -0.0008204335
+# [3,] -2.159726e-03  1.377969e-05 -1.882618e-04 -2.107349e-04  0.0003860288
+
+Sx2x <- covMatrix(X = X2, X2 = X, sig2 = sig2, covar.fun = r.matern2, l = l)
 ```
 
 
@@ -132,17 +145,17 @@ plot(x = abs(xi - xj), y = covar.vals, pch = 16)
 
 ## testing log.posterior
 ```{r}
-post.args <- list(l = 5,
-                  sig2 = 1,
+post.args <- list(l = 5.7,  # 5.7
+                  sig2 = 1500,
                   ystar = ytrue(xstar),
                   yprime = 20 / (20 * xprime),
-                  given = given )
+                  given = given)
 
-do.call(log.posterior, post.args)  # -6.652496e+14
+do.call(log.posterior, post.args)  # -6080.763
 ```
 
 ```{r}
-l <- 5
+l <- 15
 sig2 <- 1
 ystar <- ytrue(xstar)
 yprime <- 20 / (20 * xprime)
