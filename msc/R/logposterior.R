@@ -2,8 +2,7 @@
 
 #' @import mvtnorm
 #' @export
-
-log.posterior <- function(l, sig2,
+logposterior <- function(l, sig2,
                           ystar, yprime,
                           S = NULL, Syy = NULL,
                           given) {
