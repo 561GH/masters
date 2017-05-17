@@ -94,10 +94,11 @@ for (i in 1:N) {
                    covar.fun = r.matern1, l = lcurrent)
   S <- rbind(cbind(S11, S12),
              cbind(t(S12), S22))
+
   #
   # Syy <- covMatrix(X = x, sig2 = sig2, covar.fun = r.matern, l = l)
 
-  ystaryprimenew <- rmvnorm(1, mean = mystatyprime, sigma = v2 * S)
+  ystaryprimenew <- rmvnorm(1, mean = c(ystarold, yprimeold), sigma = v2 * S)
   ystarnew <- ystaryprimenew[1:length(xstar)]
   yprimenew <- ystaryprimenew[(length(xstar)+1):length(ystaryprimenew)]
 

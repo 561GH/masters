@@ -44,7 +44,7 @@ log.posterior <- function(l, sig2,
 
   ## use log scale because numbers are so tiny
   log.d.ystaryprime <- dmvnorm(c(ystar, yprime), mean = m, sigma = S, log = TRUE)
-  log.d.y <- dmvnorm(y, mean = my, sigma = Syy, log = TRUE)
+  log.d.y <- dmvnorm(as.numeric(y), mean = my, sigma = Syy, log = TRUE)
 
   cat("log.d.ystaryprime:", log.d.ystaryprime, "\n")
   cat("log.d.y:", log.d.y, "\n")
