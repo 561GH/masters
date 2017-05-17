@@ -141,3 +141,12 @@ post.args <- list(l = 5,
 do.call(log.posterior, post.args)  # -6.652496e+14
 ```
 
+```{r}
+l <- 5
+sig2 <- 1
+ystar <- ytrue(xstar)
+yprime <- 20 / (20 * xprime)
+given <- given
+```
+
+
