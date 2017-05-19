@@ -79,7 +79,9 @@ r.matern1 <- function(xi, xj,
 
   # Only for lambda = 5/2 for now.
   #
-  # xi, xj: d dimensional vectors
+  # xi, xj: d dimensional vectors;
+  #   xi MUST correspond to the derivative set, xj MUST correspond to the
+  #   non-derivative for r.matern1 (see paper)
   # l: d dimensional length scale parameters; non-negative
   # ltrans: \sqrt(2 * \lambda) / l; d-dimensional non-negative vector
   # lambda: non-negative parameter

@@ -1,6 +1,7 @@
 # MH within Gibbs for eta0
 
 #' @import mvtnorm
+#' @import stats
 #' @export
 logposterior <- function(l, sig2,
                           ystar, yprime,
@@ -28,10 +29,10 @@ logposterior <- function(l, sig2,
   if (is.null(S)) {
     S11 <- covMatrix(X = xstar, sig2 = sig2, covar.fun = r.matern, l = l)
     S22 <- covMatrix(X = xprime, sig2 = sig2, covar.fun = r.matern2, l = l)
-    S12 <- covMatrix(X = xstar, X2 = xprime,
+    S21 <- covMatrix(X = xprime, X2 = xstar,  # CAREFUL SEE PAPER FOR ARG. ORDER
                      sig2 = sig2, covar.fun = r.matern1, l = l)
-    S <- rbind(cbind(S11, S12),
-               cbind(t(S12), S22))
+    S <- rbind(cbind(S11, t(S21)),
+               cbind(S21, S22))
 
     # S21 <- covMatrix(X = xprime, X2 = xstar,
     #                  sig2 = sig2, covar.fun = r.matern1, l = l)

@@ -13,7 +13,9 @@ covMatrix <- function(X,
   # X: n by d design matrix; each row is a d-dimensional input
   # X2: n2 by d design matrix; each row is a d-dimensional input;
   # sig2: constant variance parameter; non-negative real number
-  # covar.fun: choice of covariance function
+  # covar.fun: choice of covariance function;
+  #   if one of X, X2 is the derivative set, X MUST correspond to the derivative
+  #   set and X2 to the non-derivative set for r.matern1 (see paper)
   # computing: whether to compute sequentially or in parallel. Input is one
   #   of \code{c("sequential", "parallel")}; default is "sequential".
   # ...: arguments for covar.fun
