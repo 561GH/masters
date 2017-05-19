@@ -111,10 +111,11 @@ for (i in 1:N) {
                    covar.fun = r.matern, l = lcurrent)
   S22 <- covMatrix(X = xprime, sig2 = sig2current,
                    covar.fun = r.matern2, l = lcurrent)
-  S12 <- covMatrix(X = xstar, X2 = xprime, sig2 = sig2current,
+  # CAREFUL SEE PAPER FOR ARG. ORDER
+  S21 <- covMatrix(X = xprime, X2 = xstar, sig2 = sig2current,
                    covar.fun = r.matern1, l = lcurrent)
-  S <- rbind(cbind(S11, S12),
-             cbind(t(S12), S22))
+  S <- rbind(cbind(S11, t(S21)),
+             cbind(S21, S22))
 
   #
   # Syy <- covMatrix(X = x, sig2 = sig2, covar.fun = r.matern, l = l)
