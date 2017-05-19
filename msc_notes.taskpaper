@@ -11,6 +11,12 @@ meetings:
 		- can choose GP correlation function such that a GP can approximate non-differentiable stuff
 			- still need knowledge of what the function should look like or lots of samples though
 		- standardise data... might be close enough GP
+	170519:
+		- matern because of numerical stability (also reviewer was an ass) compared to squared exponential
+			- squared exponential can lead to to cov matrices with columns that are too similar => computer issues (rounding error), i.e. it things the matrix is not positive semidefinite
+			- read the welch paper black box blah blah
+				- something about a nugget so that the numerical instability can be fixed
+		- yes if hastings ratio numerator/denom too close to zero, can log both sides
 Michael Smith Foreign Study Supplements:
 	http://www.sshrc-crsh.gc.ca/funding-financement/programs-programmes/fellowships/cgs_foreign_study-besc_etudes_etranger-eng.aspx
 	two deadlines for the CGS-MSFSS funding opportunity: June 10 and October 10
