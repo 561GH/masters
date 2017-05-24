@@ -162,4 +162,26 @@ yprime <- 20 / (20 * xprime)
 given <- given
 ```
 
+## find starting l, sig2 values
+```{r}
+l <- seq(1, 100, length.out = 10)
+sig2 <- seq(0.5, 20, length.out = 10)
+grid <- expand.grid(l, sig2)
+
+testpost <- function(l.sig2) {
+  cat(l.sig2, "\n")
+  logposterior(l = l.sig2[1], sig2 = l.sig2[2], ystar = ytrue(xstar),
+               yprime = 20 / (20 * xprime),
+               given = given)
+}
+
+probs <- apply(grid, MARGIN = 1, FUN = testpost)
+ord <- cbind(grid, probs)
+ord <- ord[order(probs, decreasing = TRUE),]
+
+tmp <- matrix(1:16, nrow = 4)
+tmp[upper.tri(tmp)]
+```
+
+
 

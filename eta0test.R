@@ -1,4 +1,5 @@
 ## run setup
+library(mvtnorm)
 
 # monotone increasing function
 ytrue <- function(x) {log(20*x + 1)}  # x > -1/20
@@ -19,7 +20,7 @@ given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar),
 
 ## start MH within gibbs
 
-eta.init <- list(l = 10, sig2 = 1,
+eta.init <- list(l = 5, sig2 = 14,
                  ystar = ytrue(xstar),
                  yprime = 20 / (20 * xprime))
 
