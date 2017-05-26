@@ -50,6 +50,11 @@ for (i in 1:N) {
     yprimeold <- chain.yprime[,i-1]
   }
 
+  chain.l[i] <- lold
+  chain.sig2[i] <- sig2old
+  chain.ystar[,i] <- ystarold
+  chain.yprime[,i] <- yprimeold
+
   ## UPDATE l ##################################################################
   lnew <- rnorm(1, mean = lold, sd = v1)
 
@@ -65,18 +70,10 @@ for (i in 1:N) {
     cat("lnew logHR:", logHR, "\n")
 
     if ( !is.nan(logHR) & !is.na(logHR) ) {  # when have -Inf - Inf get NaN
-
       if ( logHR > log(runif(1)) )  {
         chain.l[i] <- lnew
-      } else {
-        chain.l[i] <- lold
       }
-
     }
-
-  } else {
-
-    chain.l[i] <- lold
 
   }
 
@@ -97,12 +94,8 @@ for (i in 1:N) {
 
     if (logHR > log(runif(1))) {
       chain.sig2[i] <- sig2new
-    } else {
-      chain.sig2[i] <- sig2old
     }
 
-  } else {
-    chain.sig2[i] <- sig2old
   }
 
   sig2current <- chain.sig2[i]
@@ -140,14 +133,8 @@ for (i in 1:N) {
     if (logHR > log(runif(1))) {
       chain.ystar[,i] <- ystarnew
       chain.yprime[,i] <- yprimenew
-    } else {
-      chain.ystar[,i] <- ystarold
-      chain.yprime[,i] <- yprimeold
     }
 
-  } else {
-    chain.ystar[,i] <- ystarold
-    chain.yprime[,i] <- yprimeold
   }
 
   cat("Finished iteration:", i, "\n \n")
