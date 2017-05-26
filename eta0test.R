@@ -6,8 +6,8 @@ ytrue <- function(x) {log(20*x + 1)}  # x > -1/20
 
 # inputs where fcn evaluated
 x <- cbind(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1))
-# true/known model values
-y <- ytrue(x)
+# true/known model values with 0 mean
+y <- ytrue(x) - mean(ytrue(x))
 
 # prediction set inputs
 xstar <- cbind(seq(0, 1, length.out = 50))
@@ -20,12 +20,12 @@ given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar),
 
 ## start MH within gibbs
 
-eta.init <- list(l = 5, sig2 = 14,
+eta.init <- list(l = 5.6, sig2 = 1500,
                  ystar = ytrue(xstar),
                  yprime = 20 / (20 * xprime))
 
 set.seed(761)
-N <- 10
+N <- 100
 v1 <- 1
 v2 <- 1
 chain.l <- rep(NA, N)
@@ -83,7 +83,7 @@ for (i in 1:N) {
   lcurrent <- chain.l[i]
 
   ## UPDATE sig2 ###############################################################
-  sig2new <- rgamma(1, shape = sig2old/2, scale = 2)
+  sig2new <- rchisq(1, df = sig2old) #rgamma(1, shape = sig2old/2, scale = 2)
   logHR <- logposterior(l = lcurrent, sig2 = sig2new,
                          ystar = ystarold, yprime = yprimeold,
                          given = given) -
@@ -167,10 +167,10 @@ saveRDS(chains, file = "/Users/ggh/Git/masters/eta0chains.rds")
 
 chain.l
 chain.sig2
-cbind(eta.init$yprime, chain.yprime)
+cbind(eta.init$yprime, chain.yprime[,ncol(chain.yprime)])
 
 head(cbind(eta.init$ystar, chain.ystar))
-pred.ystar <- apply(chain.ystar, MARGIN = 1, FUN = mean)
-cbind(eta.init$ystar, pred.ystar)
-
+pred.ystar <- apply(chain.ystar[,(ncol(chain.ystar) - 10):ncol(chain.ystar)],
+                    MARGIN = 1, FUN = mean)
+cbind(ytrue(xstar) - mean(ytrue(xstar)), pred.ystar - mean(pred.ystar))
 

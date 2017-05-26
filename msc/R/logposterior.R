@@ -24,7 +24,7 @@ logposterior <- function(l, sig2,
   ## means and covariances
   m <- c(rep(mean(ystar), length(ystar)),
          rep(mean(yprime), length(yprime)))
-  my <- rep(mean(y), length(y))
+  my <- rep(0, length(y)) #rep(mean(y), length(y))
 
   if (is.null(S)) {
     S11 <- covMatrix(X = xstar, sig2 = sig2, covar.fun = r.matern, l = l)
