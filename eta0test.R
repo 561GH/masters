@@ -114,7 +114,8 @@ for (i in 1:N) {
   #
   # Syy <- covMatrix(X = x, sig2 = sig2, covar.fun = r.matern, l = l)
 
-  ystaryprimenew <- rmvnorm(1, mean = c(ystarold, yprimeold), sigma = v2 * S)
+  ystaryprimenew <- rmvnorm(1, mean = rep(0, length(c(ystarold, yprimeold))),
+                            sigma = v2 * S)
   ystarnew <- ystaryprimenew[1:length(xstar)]
   yprimenew <- ystaryprimenew[(length(xstar)+1):length(ystaryprimenew)]
 
