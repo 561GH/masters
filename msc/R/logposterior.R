@@ -22,8 +22,9 @@ logposterior <- function(l, sig2,
   x <- cbind(given$x)
 
   ## means and covariances
-  m <- c(rep(mean(ystar), length(ystar)),
-         rep(mean(yprime), length(yprime)))
+  # m <- c(rep(mean(ystar), length(ystar)),
+  #        rep(mean(yprime), length(yprime)))
+  m <- rep(0, length(ystar) + length(yprime))
   my <- rep(0, length(y)) #rep(mean(y), length(y))
 
   if (is.null(S)) {
