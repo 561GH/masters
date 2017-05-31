@@ -100,6 +100,13 @@ covMatrix <- function(X,
 
   }
 
-  return(sig2 * out)
+  ## Make sure resulting matrix is symmetric if relevant #######################
+  out <- sig2 * out
+
+  if (nrow(out) == ncol(out)) {  # i.e. out is a square matrix
+    out <- ( out + t(out) ) / 2
+  }
+
+  return(out)
 
 }

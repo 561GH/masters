@@ -34,7 +34,7 @@ post.mean <- Kfy %*% solve(Kyy) %*% (y - 0)
 points(x = grid, y = post.mean, type = "l", col = "purple", lwd = 2)
 
 post.covar <- Kff - Kfy %*% solve(Kyy) %*% t(Kfy) 
-post.covar <- (post.covar + t(post.covar))/2
+post.covar <- (post.covar + t(post.covar))/2  # FIXES SYMMETRY ISSUE
 posterior.draws <- rmvnorm(5, mean = post.mean, sigma = post.covar)
 
 for (i in 1:nrow(posterior.draws)) {
