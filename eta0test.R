@@ -22,7 +22,7 @@ given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar),
 
 eta.init <- list(l = 5.6, sig2 = 5, #l = 5.6, sig2 = 1500,
                  ystar = ytrue(xstar) - mean(ytrue(x)),
-                 yprime = 20 / (20 * xprime) - mean(20 / (20 * xprime)))
+                 yprime = 20 / (20 * xprime))
 
 set.seed(561)
 N <- 100
