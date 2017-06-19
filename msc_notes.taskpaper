@@ -17,6 +17,56 @@ meetings:
 			- read the welch paper black box blah blah
 				- something about a nugget so that the numerical instability can be fixed
 		- yes if hastings ratio numerator/denom too close to zero, can log both sides
+	170601:
+		# weird length-scale parameter from mcmc
+			recall length-scale l shows up as sqrt(5) / l
+			but then it's really hard to have a justifiable prior => transform it so that instead of getting exp(-sqrt(5) / l * distance), we have P^(distance) 
+				i.e. variable transformation so instead of support(l) > 0, we have support(P) \in (0, 1)
+				easier to put a prior on P than l
+		# "parameter" choices
+			you include (y*, y') as parameters in the posterior only when you know which new inputs where you want prediction
+			typically you don't know this so the posterior is just a function of the GP parameters 
+			for Golchi 2014 EX1. you do know y*, y' etc. so it's fine to include it in the posterior
+		# mcmc output
+			so you've done MCMC and have chains for the GP parameters
+				look at the histograms to see the distributions!!
+			the correct way to get sample paths is to 
+				1. sample from posterior dis. for each parameter
+					it might be ok to use a point estimate based on your MCMC chain IF the distribution of the parameter is unimodal with small variance
+						DB prefers posterior median instead of the posterior mean because it's unlikely that the distribution should be symmmetric
+					sometimes if it's hard to get a distribution of the GP parameter i.e. you didn't explore the space a lot etc. maybe use the posterior mode
+					i.e. if you use a point estimate to get your GP sample paths this way, then you're not accounting for any of the variability on your GP parameters
+						consider a CI vs. a prediction interval
+				2. use the sampled parameters to sample from the MVN appropriately 
+						(apparently the mean and covariance formulas [y* | y, GP parameters] are the kriging equations)
+		# numerical instability in the matern covariance
+			recall: can fix via the nugget, or the (A + t(A) ) / 2 trick; however...
+			## don't use the solve() or inv()
+			- look up the cholesky decomposition (i.e. gives S^-0.5)
+				or QR decomposition?
+				recall SVD can give eigenvalues for non-square matrices
+			## build your on sampler from the MVN distribution
+			i.e. the package one probably sucks
+			- build your on sampler from the MVN distribution
+				1. sample y where yi ~ N(0, 1) independently
+				2. S^-0.5 y = y', where y' ~ N(0, S)
+			## squared exponential vs. matern
+				consider that squared exp is basically a more strict constraint on the function space
+					because squared exp is infinitely differentiable
+				matern only has a few derivatives that exist so it is a more relaxed constraint
+					=> using the matern leads to fewer numerical instability issues
+		# range of problems
+			recall in Golchi 2014 EX1, the x ranges from (0, 1)
+			apparently this is quite standard (i.e. even for vector x, all x_i range from 0, 1) 
+				remember i can be thought of as an index for some covariate value, hence some of the GP parameter are like a regression coefficient
+				https://stats.stackexchange.com/questions/277176/gaussian-process-and-correlation
+			since the standardisation just ends up in the GP parameters for example it gets absorbed by the length-scale parameter 
+		# acceptance rate
+			- email DB about JASA paper (Todd Graves, JASA tuning MCMC)
+			- check EX1. and make those plots for some initial values; 
+				given initial value, x-axis = step-width for proposal, y-axis = acceptance rate
+				- report to DB aiming for 30-40%
+		- do the SMC finally
 Michael Smith Foreign Study Supplements:
 	http://www.sshrc-crsh.gc.ca/funding-financement/programs-programmes/fellowships/cgs_foreign_study-besc_etudes_etranger-eng.aspx
 	two deadlines for the CGS-MSFSS funding opportunity: June 10 and October 10
