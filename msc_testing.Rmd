@@ -141,6 +141,25 @@ plot(x = abs(xi - xj), y = covar.vals, pch = 16)
 ## squared exponential 
 ```
 
+# testing mvn sampler + density 
+```{r}
+library(Matrix); library(mvtnorm)
+n = 7
+set.seed(761)
+S <- as.matrix(Hilbert(n))
+m <- rep(3, n)
+(y <- rmvnorm(1, mean = m, sigma = S))
+
+## check density
+dmvnorm(y, mean = m, sigma = S, log = F)
+dmvn(y, m, S, log = F)
+
+## check sampler
+rmvn(3, m, S)  # expect 3 x length(m) matrix
+
+```
+
+
 # eta0 small tests
 
 ## testing log.posterior
