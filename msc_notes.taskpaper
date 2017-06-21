@@ -62,11 +62,35 @@ meetings:
 				https://stats.stackexchange.com/questions/277176/gaussian-process-and-correlation
 			since the standardisation just ends up in the GP parameters for example it gets absorbed by the length-scale parameter 
 		# acceptance rate
-			- email DB about JASA paper (Todd Graves, JASA tuning MCMC)
-			- check EX1. and make those plots for some initial values; 
+			- email DB about JASA paper (Todd Graves, JASA tuning MCMC) @done
+			- check EX1. and make those plots for some initial values;  @done
 				given initial value, x-axis = step-width for proposal, y-axis = acceptance rate
 				- report to DB aiming for 30-40%
 		- do the SMC finally
+	170620:
+		# acceptance rate for eta0
+			apparently aiming for 20-50% (combination 8 looks good enough)
+		# inlcuding y* and y ' as unknown parameters
+			think of all Bayesian analysis as problems with missing/unknown values
+				the jones, schonlau paper alternate proof for the kriging equations derives them by treating y* as a missing value
+			when the problem is high-dimensional
+				=> better to include (y*, y') as unknowns because to have a "general grid" of partial derivative values over the whole space of y values would be computationally horrifying
+				i.e. the covariance matrix would be huge and thus horrible to invert
+				in contrast, knowing where we want to make predictions, we can just specify the derivative information around those points, thus reducing the overall number of unknowns hence smaller covariance matrix
+			when the problem is low-dimensional
+				=> it's fine to just have y' as unknowns because y* | y, y' etc. computation is not bad
+			Alg 1 from golchi is the algorithm for high-dimensional problems
+		# general advice
+			- go to the machine learning things
+			- improve github CV via app or something
+		# TODO
+			- SCMC omg
+			- figure out whether I want CRA or los alamos
+			- read more on adaptive MCMC/SMC
+				- what is the acceptance rate exactly (particle survival?) in the context of SMC?
+				maude/dave's hack: for first third of iterations in chain, check that acceptance rate is within desired range, if not multiply step size by target rate/current rate
+			- add case study to CV @done
+			- email prof welch (bcc jabed)
 Michael Smith Foreign Study Supplements:
 	http://www.sshrc-crsh.gc.ca/funding-financement/programs-programmes/fellowships/cgs_foreign_study-besc_etudes_etranger-eng.aspx
 	two deadlines for the CGS-MSFSS funding opportunity: June 10 and October 10
