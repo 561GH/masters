@@ -8,13 +8,22 @@ plot(longeta0$chain.l, type = "l")  # poor mixing for l??
 plot(longeta0$chain.sig2[1000:15000], type = "l")
 
 ###
+plot(chain.l, type = "l")  # poor mixing for l??
+plot(chain.sig2, type = "l")
+
+###
 star <- function(i) {
   plot(chain.ystar[i,], type = "l")
   abline(h = chain.ystar[i,1], col = "red")
 }
 
 all.equal(chain.ystar[10,], chain.ystar[20,])
-star(25)
+star(15)
+
+par(mfrow = c(3, 3))
+for (i in 2:10) {star(i)}
+par(mfrow = c(1, 1))
+
 
 ###
 prime <- function(i) {
@@ -29,9 +38,8 @@ for (i in 2:10) {prime(i)}
 par(mfrow = c(1, 1))
 
 ###
-tmp <- chain.ystar[,12000:15000]
-submean <- function(v) {v - mean(v)}
-tmp <- apply(tmp, MARGIN = 2, submean)
+tmp <- apply(chain.ystar, MARGIN = 1, mean)
+plot(x = xstar, y = tmp)
 
 star2 <- function(i) {
   plot(tmp[i,], type = "l")
