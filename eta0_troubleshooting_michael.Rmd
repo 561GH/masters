@@ -7,13 +7,14 @@ library(mvtnorm)
 curve(log(20*x + 1), from = 0, to = 1, lwd = 3) #, ylim = c(-1.5, 1.5))
 
 # suppose we know l, sig2
-ll <- 0.3
+ll <- 1 #5.606 #0.3  # makes it look like the paper...
+ss <- 1 #6.635
 
 # prior
 
 grid <- cbind(seq(0, 1, length.out = 60))  #matrix(seq(0, 2*pi, length.out = N), nrow = N) 
 N <- nrow(grid)
-Kff <- covMatrix(X = grid, sig2 = 1, l = ll, covar.fun = r.matern) + diag( rep(1e-8, N) )
+Kff <- covMatrix(X = grid, sig2 = ss, l = ll, covar.fun = r.matern) + diag( rep(1e-7, N) )
 prior.draws <- rmvnorm(5, mean = rep(0, nrow(grid)), sigma = Kff)
 
 for (i in 1:nrow(prior.draws)) {
@@ -25,8 +26,8 @@ x <- cbind(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1))
 y <- log(20*x + 1)
 points(x = x, y = y, pch = 16, col = "green", cex = 3)
 
-Kfy.joint <- covMatrix(X = rbind(grid, x), sig2 = 1, l = ll, covar.fun = r.matern)
-Kyy <- covMatrix(X = x, sig2 = 1, l = ll, covar.fun = r.matern) + diag( rep(1e-8, length(y)) )
+Kfy.joint <- covMatrix(X = rbind(grid, x), sig2 = ss, l = ll, covar.fun = r.matern)
+Kyy <- covMatrix(X = x, sig2 = ss, l = ll, covar.fun = r.matern) + diag( rep(1e-7, length(y)) )
 Kfy <- Kfy.joint[1:N, (N+1):ncol(Kfy.joint)]
 
 # posterior
@@ -35,7 +36,7 @@ points(x = grid, y = post.mean, type = "l", col = "purple", lwd = 2)
 
 post.covar <- Kff - Kfy %*% solve(Kyy) %*% t(Kfy) 
 post.covar <- (post.covar + t(post.covar))/2  # FIXES SYMMETRY ISSUE
-posterior.draws <- rmvnorm(5, mean = post.mean, sigma = post.covar)
+posterior.draws <- rmvnorm(100, mean = post.mean, sigma = post.covar)
 
 for (i in 1:nrow(posterior.draws)) {
   points(x = grid, y = posterior.draws[i,], type = "l", col = "pink", lwd = 2)
@@ -49,9 +50,9 @@ points(x = x, y = y, pch = 16, col = "green", cex = 3)
 xstar <- c(0.5, 1.5, 3.5, 4.5, 5.5, 2*pi)
 xstar <- matrix(xstar, nrow = length(xstar))
 points(x = xstar, y = sin(xstar), pch = 16, col = "red")
-Kystary.full <- covMatrix(X = rbind(xstar, x), sig2 = 1, l = ll, covar.fun = r.matern)
+Kystary.full <- covMatrix(X = rbind(xstar, x), sig2 = ss, l = ll, covar.fun = r.matern)
 Kystary <- Kystary.full[1:length(xstar), (length(xstar) + 1):ncol(Kystary.full)]
-Kystarystar <- covMatrix(X = xstar, sig2 = 1, l = ll, covar.fun = r.matern)
+Kystarystar <- covMatrix(X = xstar, sig2 = ss, l = ll, covar.fun = r.matern)
 
 pred.mean <- Kystary %*% solve(Kyy) %*% (y - 0)
 points(x = xstar, y = pred.mean, col = "red", cex = 2)

@@ -20,13 +20,13 @@ given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar),
 
 ## start MH within gibbs #######################################################
 
-eta.init <- list(l = 5.76, sig2 = 5.76,
+eta.init <- list(l = 0.3, sig2 = 1, #l = 5.76, sig2 = 5.76,
                  ystar = ytrue(xstar) - mean(ytrue(x)),
                  yprime = 20 / (20 * xprime) )
 
 set.seed(561)
 N <- 100  # iterations
-v1 <- 0.01  # step size for l proposal
+v1 <- 8  # step size for l proposal
 v2 <- 8  # step size for sig2 proposal
 chain.l <- rep(NA, N)
 chain.sig2 <- rep(NA, N)
