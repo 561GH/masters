@@ -160,8 +160,51 @@ eta0 <- function(eta.init = init,
 }
 
 ## tuning ######################################################################
-init <- list(l = 0.3, sig2 = 1, #l = 5.76, sig2 = 5.76,
+init.lsig2 <- c(5.7, 1)
+init <- list(l = 5.7, sig2 = 1,
              ystar = ytrue(xstar) - mean(ytrue(x)),
              yprime = 20 / (20 * xprime) )
 
-test <- eta0()
+trials.v1 <- 0.01 * 2^(-2:2)
+trials.v2 <- 6 * 2^(-2:2)
+trials.v1v2 <- expand.grid(trials.v1, trials.v2)
+
+
+steps <- 50
+runs <- NULL
+for (j in 1:14) {
+
+  rate.l <- rate.sig2 <- NULL
+  for (i in 1:nrow(trials.v1v2)) {
+    test <- eta0(v1 = trials.v1v2[i, 1], v2 = trials.v1v2[i, 2], N = steps)
+    rate.l <- c(rate.l, test$accepted.l / steps)
+    rate.sig2 <- c(rate.sig2, test$accepted.sig2 / steps)
+    cat("Finished test:", i, "of round:", j, "\n")
+  }
+
+  runs <- rbind(runs, cbind(1:25, rate.l, rate.sig2))
+}
+
+runs <- data.frame(runs)
+colnames(runs) <- c("combo.row", "rate.l", "rate.sig2")
+
+res10 <- rbind(cbind(combo.row = 1:25, rate.l = res$rate.l, rate.sig2 = res$rate.sig2), runs)
+res10$combo.row <- factor(res10$combo.row)
+#write.csv(res10, file = "/Users/ggh/Desktop/res10.csv", row.names = FALSE)
+
+# plots
+library(ggplot2)
+
+## 10 rounds
+res10gg <- tidyr::gather(data = res10, parameter, rate, -1)
+gg <- ggplot(data = res10gg, aes(x = combo.row, y = rate))
+gg + geom_boxplot(aes(fill = parameter)) + geom_hline(yintercept = 0.4)
+
+gg + geom_boxplot() + facet_wrap(~ parameter) + geom_hline(yintercept = 0.4)
+
+trials.v1v2[2:3,]
+#' - somehwere in between here for l step size
+#' - for sig2, steps tested seem to affect spread more than anything?
+
+
+
