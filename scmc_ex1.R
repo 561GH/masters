@@ -44,6 +44,10 @@ W[,1] <- 1/N
 ################################################################################
 # 3. looping through t = 1, ..., TT-1 ##########################################
 ################################################################################
+v1 <- 0.01  # step size for l
+v2 <- 6  # step size for sig2
+
+# should let v1 and v2 vary to provide decent acceptance rates
 
 for (t in 1:TT) {
 
@@ -83,6 +87,115 @@ for (t in 1:TT) {
   }
 
   ## SAMPLING ==================================================================
+
+  particles.l.t <- particles.l
+  particles.sig2.t <- particles.sig2
+  particles.ystar.t <- particles.ystar
+  particles.yprime.t <- particles.yprime
+
+  ### Track acceptance rate
+  accepted.l <- accepted.sig2 <- 0
+
+  particles.t <-
+    foreach(i = 1:N) %dopar% {  # .combine??
+
+      lold <- particles.l[i]
+      sig2old <- particles.sig2[i]
+      ystarold <- particles.ystar[i,]
+      yprimeold <- particles.yprime[i,]
+
+      ### UPDATE l #############################################################
+      lnew <- rnorm(1, mean = 5.7, sd = v1)
+
+      if (lnew > 0) {
+
+        logHR <- logposterior(l = lnew,
+                              sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
+                              given = given) -
+          logposterior(l = lold,
+                       sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
+                       given = given)
+
+        cat("lnew logHR:", logHR)
+
+        if ( !is.nan(logHR) & !is.na(logHR) ) {  # when have -Inf - Inf get NaN
+          if ( logHR > log(runif(1)) )  {
+            particles.l.t[i] <- lnew
+            accepted.l <- accepted.l + 1
+          }
+        }
+
+      }
+
+      lcurrent <- particles.l.t[i]
+      #cat("\t \t \t -> acceptance rate for l:", accepted.l / i, "\n")
+
+      ### UPDATE sig2 ##########################################################
+      sig2new <- rchisq(1, df = sig2old) #rgamma(1, shape = sig2old/2, scale = 2)
+      logHR <- logposterior(l = lcurrent, sig2 = sig2new,
+                            ystar = ystarold, yprime = yprimeold,
+                            given = given) -
+        logposterior(l = lcurrent, sig2 = sig2old,
+                     ystar = ystarold, yprime = yprimeold,
+                     given = given)
+
+      cat("sig2new logHR:", logHR)
+
+      if ( !is.nan(logHR) & !is.na(logHR) ) {
+
+        if (logHR > log(runif(1))) {
+          particles.sig2.t[i] <- sig2new
+          accepted.sig2 <- accepted.sig2 + 1
+        }
+
+      }
+
+      sig2current <- particles.sig2.t[i]
+      #cat("\t \t \t -> acceptance rate for sig2:", accepted.sig2 / i, "\n")
+
+      ### UPDATE ystaryprime ###################################################
+      # why is this a proposal???
+      nugget <- 1e-6  # -7 caused 39/100 warnings
+      Rinv <- solve(covMatrix(X = x, sig2 = sig2current,
+                              covar.fun = r.matern, l = lcurrent) +
+                      diag(nugget, nrow(x)))
+
+      S11 <- covMatrix(X = xstar, sig2 = sig2current, covar.fun = r.matern, l = lcurrent)
+      S22 <- covMatrix(X = xprime, sig2 = sig2current, covar.fun = r.matern2, l = lcurrent)
+      S21 <- covMatrix(X = xprime, X2 = xstar,  # CAREFUL SEE PAPER FOR ARG. ORDER
+                       sig2 = sig2current, covar.fun = r.matern1, l = lcurrent)
+      R.xstarxprime <- rbind(cbind(S11, t(S21)),
+                             cbind(S21, S22)) +
+        diag(nugget, nrow(xstar) + nrow(xprime))
+
+      # CAREFUL SEE PAPER FOR ARG. ORDER
+      r.xstarprime.x <- rbind(covMatrix(X = xstar, X2 = x, sig2 = sig2current,
+                                        covar.fun = r.matern, l = lcurrent),
+                              covMatrix(X = xprime, X2 = x, sig2 = sig2current,
+                                        covar.fun = r.matern1, l = lcurrent))
+      mu.xstarprime <- r.xstarprime.x %*% Rinv %*% y
+
+      # because covMatrix has sig2 in it, have an extra one multiplying in???
+      tau2.xstarprime <- R.xstarxprime -
+        r.xstarprime.x %*% Rinv %*% t(r.xstarprime.x) #/ sig2current #???
+
+      # MAKE SURE tau2.xstarprime IS SYMMETRIC
+      tau2.xstarprime <- ( tau2.xstarprime + t(tau2.xstarprime) ) / 2
+
+      # MAKE SURE tau2.xstarprime IS POSTIVE SEMI-DEFINITE
+      # eigen(tau2.xstarprime)$values  # changed nugget to 10e-6 from -8
+
+
+      ystaryprimenew <- rmvnorm(1, mean = mu.xstarprime, sigma = tau2.xstarprime)
+      ystarnew <- ystaryprimenew[1:length(xstar)]
+      yprimenew <- ystaryprimenew[(length(xstar)+1):length(ystaryprimenew)]
+
+      particles.ystar.t[i,] <- ystarnew
+      particles.yprime.t[i,] <- yprimenew
+
+    }
+
+
 
 
 }
