@@ -1,5 +1,6 @@
 # Numerical instability in covariance matrix
 
+#' @export
 dmvn <- function(y, m, S, log = FALSE) {
 
   y <- as.numeric(y)  # make it not a column
@@ -36,6 +37,7 @@ dmvn <- function(y, m, S, log = FALSE) {
   }
 }
 
+#' @export
 rmvn <- function(N, m, S) {
 
   m <- as.numeric(m)

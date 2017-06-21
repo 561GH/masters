@@ -91,8 +91,8 @@ meetings:
 				- what is the acceptance rate exactly (particle survival?) in the context of SMC?
 				maude/dave's hack: for first third of iterations in chain, check that acceptance rate is within desired range, if not multiply step size by target rate/current rate
 			- add case study to CV @done
-			- email prof welch (bcc jabed)
-			- make mvn functions coded part of the package actually (export etc.)
+			- email prof welch (bcc jabed?) @done
+			- make mvn functions coded part of the package actually (export etc.) @done
 Michael Smith Foreign Study Supplements:
 	http://www.sshrc-crsh.gc.ca/funding-financement/programs-programmes/fellowships/cgs_foreign_study-besc_etudes_etranger-eng.aspx
 	two deadlines for the CGS-MSFSS funding opportunity: June 10 and October 10

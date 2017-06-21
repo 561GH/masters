@@ -144,18 +144,50 @@ plot(x = abs(xi - xj), y = covar.vals, pch = 16)
 # testing mvn sampler + density 
 ```{r}
 library(Matrix); library(mvtnorm)
-n = 7
-set.seed(761)
-S <- as.matrix(Hilbert(n))
+randomCov <- function(n) {
+  L <- matrix(0, nrow = n, ncol = n)
+  L[lower.tri(L)] <- rnorm(sum(lower.tri(L)))
+  diag(L) <- abs(rnorm(length(diag(L))))
+  
+  return(L %*% t(L))
+}
+
+set.seed(361)
+n <- 100
+S <- randomCov(n = n) + diag(rep(1e-9, n)) #as.matrix(Hilbert(n))
+Sev <- eigen(S)$values
+which(Sev <= 0) # check positive definite (want all positive eigenvalues)
 m <- rep(3, n)
-(y <- rmvnorm(1, mean = m, sigma = S))
+y <- rmvnorm(1, mean = m, sigma = S)
+rmvnorm(1, m, S)
 
 ## check density
-dmvnorm(y, mean = m, sigma = S, log = F)
-dmvn(y, m, S, log = F)
+dmvnorm(m, mean = m, sigma = S, log = F)
+dmvn(m, m, S, log = F)
+
+## compare speed
+library(microbenchmark)
+
+microbenchmark(dmvnorm(m, mean = m, sigma = S, log = F),
+                          dmvn(m, m, S, log = F), times = 1000)
+
+microbenchmark(rmvnorm(1, mean = m, sigma = S, method = "chol"),
+               rmvn(1, m, S), times = 100000)
+
+
+#' - so... mvtnorm  is faster + didn't need to add the nugget (no complaints)
+#' - no need to use mine then
+#' - sampling more than 1 is faster with method = "chol"
+# > microbenchmark(rmvnorm(1, mean = m, sigma = S, method = "chol"),
+# +                rmvn(1, m, S), times = 100000)
+# Unit: microseconds
+#                                              expr     min      lq     mean  median       uq       max neval
+#  rmvnorm(1, mean = m, sigma = S, method = "chol") 416.813 502.207 670.4624 531.482 564.2635  88332.79 1e+05
+#                                     rmvn(1, m, S) 346.407 427.730 594.6084 453.745 484.1735 128485.16 1e+05
+
 
 ## check sampler
-rmvn(3, m, S)  # expect 3 x length(m) matrix
+#rmvn(3, m, S)  # expect 3 x length(m) matrix
 
 ```
 
