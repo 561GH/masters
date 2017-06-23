@@ -80,6 +80,10 @@ meetings:
 			when the problem is low-dimensional
 				=> it's fine to just have y' as unknowns because y* | y, y' etc. computation is not bad
 			Alg 1 from golchi is the algorithm for high-dimensional problems
+		particle filtering is a kind of SMC (though it seems like internet says that particle filter == SMC)
+			bootstrap filtering is basically what Alg 1 uses
+		# diagnosing MCMC
+			divide chain into chunks ("bits"), for each chunk sort, plot qq plot (?)
 		# general advice
 			- go to the machine learning things
 			- improve github CV via app or something
