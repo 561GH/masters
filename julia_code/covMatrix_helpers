@@ -1,0 +1,64 @@
+using Distributions
+
+
+
+function jgibbs(N::Integer, thin::Integer)
+    mat = Array(Float64,(N,2))
+    x = y = 0.
+    for i in 1:N
+        for j in 1:thin
+            x = rand(Gamma(3.,1./(y*y+4.))) #shape/scale
+            y = rand(Normal(1./(x+1.),1./sqrt(2.* (x+1.))))
+        end
+        mat[i,1] = x; mat[i,2] = y
+    end
+    mat
+end
+
+# jgibbs(10000,500)
+################################################################################
+################################################################################
+################################################################################
+
+# trying to even work out r.matern
+
+xi = transpose( collect(1:5) )
+xj = transpose( collect(1:5) * 3 )
+tmp = transpose( vcat(xi, xj, xi) )
+tmp = convert(Array{Real, ndims(tmp)}, tmp)
+lambda = 5/2
+gtmp = mapslices(g, tmp, 2)
+prod(gtmp)
+################################################################################
+################################################################################
+################################################################################
+# error handling done on R side
+# xi, xj: d dimensional vectors
+# ltrans: \sqrt(2 * \lambda) / l; d-dimensional non-negative vector
+# RETURN: r(xi, xj) defined on p6
+function r_matern(xi::Vector{1}, xj::Vector{1},
+    ltrans::Vector{1}, lambda::Real = 5/2)
+
+    function g(inputk::Array{Real, 1})
+        # inputk: 3-dimensional vector c(xik, xjk, ltransk)
+        ## xik, xjk: kth entry of vectors xi, xj respectively
+        ## ltransk: kth entry of ltrans as defined for r(., .); always ltrans, not l
+
+        xik = inputk[1]
+        xjk = inputk[2]
+        ltransk = inputk[3]
+
+        ## for general lambda but for now
+        2^(1 - lambda) / gamma(lambda) *
+            ( ltransk * abs(xik - xjk) )^lambda *
+            besselk( lambda, ltransk * abs(xik - xjk) )
+
+    end # g FUNCTION END #######################################################
+
+    # xi != xj ###################################################################
+    xixjltrans = hcat(xi, xj, ltrans) # cbind(xi, xj, ltrans)
+    covxixj = mapslices(g, xixjltrans, 2)
+    # covxixj <- prod( apply(xixjltrans, MARGIN = 1, FUN = g) )
+    prod(covxixj)
+
+end
