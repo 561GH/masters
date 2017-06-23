@@ -51,12 +51,12 @@ r.matern <- function(xi, xj,
 
     ## for general lambda
     2^(1 - lambda) / gamma(lambda) *
-      ( ltrans * abs(xik - xjk) ) ^ lambda *
-      besselK( ltrans * abs(xik - xjk), nu = lambda)
+      ( ltransk * abs(xik - xjk) ) ^ lambda *
+      besselK( ltransk * abs(xik - xjk), nu = lambda)
 
     ## for lambda = 5/2; used to check if the above is correct
-    # (1 + ltrans * abs(xik - xjk) + 1/3 * (ltrans * abs(xik - xjk))^2) *
-    #   exp(-ltrans * abs(xik - xjk))
+    # (1 + ltransk * abs(xik - xjk) + 1/3 * (ltransk * abs(xik - xjk))^2) *
+    #   exp(-ltransk * abs(xik - xjk))
 
   }
   # g FUNCTION END #############################################################
@@ -121,9 +121,9 @@ r.matern1 <- function(xi, xj,
     ltransk <- input[3]
 
     ## for lambda = 5/2
-    1/3 * ltrans^2 * abs(xik - xjk) *
-      (1 + ltrans * abs(xik - xjk)) *
-      exp( -ltrans * abs(xik - xjk) ) *
+    1/3 * ltransk^2 * abs(xik - xjk) *
+      (1 + ltransk * abs(xik - xjk)) *
+      exp( -ltransk * abs(xik - xjk) ) *
       sign(xik - xjk)
 
   }
@@ -187,8 +187,8 @@ r.matern2 <- function(xi, xj,
     ltransk <- input[3]
 
     ## for lambda = 5/2
-    1/3 * ltrans^2 * (1 + ltrans * abs(xik - xjk) -
-                        0.5 * (ltrans * abs(xik - xjk))^2 ) *
+    1/3 * ltransk^2 * (1 + ltransk * abs(xik - xjk) -
+                        0.5 * (ltransk * abs(xik - xjk))^2 ) *
       exp( -ltrans * abs(xik - xjk) ) * sign(xik - xjk)
 
   }
