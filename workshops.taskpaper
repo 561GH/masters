@@ -1,0 +1,44 @@
+matt mcInnis:
+	issues for the recommendation models
+		1. organisation 2. speed
+	opensource != free because license
+spark tutorial:
+	given 6 nodes attached together as a clsuter (1 node = 1 computer)
+	object storage = bucket in AWS
+	curse of multiple environments (package versions, dependencies etc.)
+	distributed vs central computing = python vs spark
+		spread computation over multiple computers
+		speed up computation affordably
+		spark is written in scala, written in java
+hadoop is a great way to store big data ina  distributed way:
+	> 5 TB data
+	hadoop distributes data storage; it remembers where data is located
+	2 components
+		mapreduce: for analysis
+			slow b/c keep reading and writing from disk
+			vs spark which returns new rdd files when you operate 
+			no one uses mapreduce to analyse data anymore (replaced by spark)
+				thank god no more need to use java (python, scala, java)
+				spark reads and writes to memory, which can be up to 100 times faster
+				EX. processing 1 month of transactions (50 hours to 40 mins)
+		HDFS: hadoop distributed file system
+	data storage scales in a linear way (not possible when want single bigger boxes)
+	can store any kind of data
+	fault tolerant
+		i.e. stores multiple copies so can get cheap computers and it's fine if some die
+spark lab2:
+	function vs method
+		throw data into a function
+		method is for for a class we call functions on?
+		
+		shit + enter = evaluate
+		tab = autocomplete
+		shift + tab = documentation
+must learn sql (stanford online sql course):
+instacart dataset:
+	for optimised performance, may want to cache some things in memory
+	see example ... leverages spark ... way faster operations
+text analytics with spark:
+	cognitiveclass.ai
+julia is fast:
+	apparently equivalent to C?
