@@ -202,9 +202,10 @@ gg + geom_boxplot(aes(fill = parameter)) + geom_hline(yintercept = 0.4)
 
 gg + geom_boxplot() + facet_wrap(~ parameter) + geom_hline(yintercept = 0.4)
 
-trials.v1v2[2:3,]
+trials.v1v2[8,]
+#   Var1   Var2
+# 8 0.01    3
 #' - somehwere in between here for l step size
 #' - for sig2, steps tested seem to affect spread more than anything?
 
-
-
+# Generate the particles for SCMC
