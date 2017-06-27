@@ -1,23 +1,13 @@
-# SCMC first actual attempt
+# SCMC toy example
 
-## run setup
+## setup
+ytrue <- function(x) {log(20*x + 1)}  # x > -1/20; monotone increasing function
 
-# monotone increasing function
-ytrue <- function(x) {log(20*x + 1)}  # x > -1/20
-
-# inputs where fcn evaluated
-x <- cbind(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1))
-# true/known model values
-y <- ytrue(x)
-
-# prediction set inputs
-xstar <- cbind(seq(0, 1, length.out = 50))
-
-# derivative set inputs
-xprime <- cbind(c(0.42, 0.47, 0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87))
-
-given <- list(x = cbind(x), xprime = cbind(xprime), xstar = cbind(xstar),
-              y = y)
+given <- list(x = cbind(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1)), # inputs where fcn evaluated
+              xstar = cbind(seq(0, 1, length.out = 50)), # prediction set inputs
+              xprime = cbind(c(0.42, 0.47, 0.52, 0.57, 0.62, # derivative set inputs
+                               0.67, 0.72, 0.77, 0.82, 0.87)),
+              y = ytrue(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1))) # true/known model values
 
 TT <- 20  # total time
 tauTT <- 10e-6
@@ -44,10 +34,145 @@ W[,1] <- 1/N
 ################################################################################
 # 3. looping through t = 1, ..., TT-1 ##########################################
 ################################################################################
-v1 <- 0.01  # step size for l
-v2 <- 6  # step size for sig2
+step.l <- 0.01  # step size for l
+step.sig2 <- 6  # step size for sig2
+step.ystarynew <- 1  # tune this
 
-# should let v1 and v2 vary to provide decent acceptance rates
+# should let step size vary to provide decent acceptance rates (during burn in?)
+
+### Update functions ###########################################################
+# return:
+#     current: either accepted proposal, or stay at old for this iteration
+#     accepted: 1 (accepted) or 0 (not accepted)
+update.l <- function(lold,
+                     sig2, ystar, yprime,
+                     given = given,
+                     step = step.l) {
+
+  # these stay the same if proposal not accepted
+  lcurrent <- lold
+  accepted <- 0
+
+  lnew <- rnorm(1, mean = 5.7, sd = step.l)
+
+  if (lnew > 0) {
+
+    logHR <- logposterior(l = lnew,
+                          sig2 = sig2, ystar = ystar, yprime = yprime,
+                          given = given) -
+      logposterior(l = lold,
+                   sig2 = sig2, ystar = ystar, yprime = yprime,
+                   given = given)
+
+    cat("lnew logHR:", logHR)
+
+    if ( !is.nan(logHR) & !is.na(logHR) ) {  # when have -Inf - Inf get NaN
+      if ( logHR > log(runif(1)) )  {
+        lcurrent <- lnew
+        accepted <- 1
+      }
+    }
+
+  }
+
+  return(list(lcurrent = lcurrent,
+              accepted = accepted))
+
+}
+
+update.sig2 <- function(l, sig2old,
+                        ystar, yprime,
+                        given = given,
+                        step = step.sig2) {
+
+  # these stay the same if proposal not accepted
+  sig2current <- sig2old
+  accepted <- 0
+
+  sig2new <- rchisq(1, df = sig2old) #rgamma(1, shape = sig2old/2, scale = 2)
+
+  logHR <- logposterior(l = l, sig2 = sig2new,
+                        ystar = ystar, yprime = yprime,
+                        given = given) -
+    logposterior(l = l, sig2 = sig2old,
+                 ystar = ystar, yprime = yprime,
+                 given = given)
+
+  cat("sig2new logHR:", logHR)
+
+  if ( !is.nan(logHR) & !is.na(logHR) ) {
+
+    if (logHR > log(runif(1))) {
+      sig2current <- sig2new
+      accepted <- 1
+    }
+
+  }
+
+  return(list(sig2current = sig2current,
+              accepted = accepted))
+
+}
+
+update.ystarynew <- function(l, sig2, ystarold, yprimeold,
+                        given = given,
+                        step = step.ystarynew) {
+
+  x <- given$x
+  xstar <- given$xstar
+  xprime <- given$xprime
+  y <- given$y
+
+  # these stay the same if proposal not accepted
+  ystarcurrent <- ystarold
+  yprimecurrent <- yprimeold
+  accepted <- 0
+
+  # did not need to do metropolis for eta_0 (particle initialisation)
+  # because when tau0 = 0 (no constraint), we can sample from the
+  # (ystar, ynew) | l, sig2 directly
+  nugget <- 1e-6  # -7 caused 39/100 warnings
+
+  ## fix this solve; check the nugget;
+  # OR check with another inversion method
+  Rinv <- solve(covMatrix(X = x, sig2 = sig2,
+                          covar.fun = r.matern, l = l) +
+                  diag(nugget, nrow(x)))
+
+  S11 <- covMatrix(X = xstar, sig2 = sig2, covar.fun = r.matern, l = l)
+  S22 <- covMatrix(X = xprime, sig2 = sig2, covar.fun = r.matern2, l = l)
+  S21 <- covMatrix(X = xprime, X2 = xstar,  # CAREFUL SEE PAPER FOR ARG. ORDER
+                   sig2 = sig2, covar.fun = r.matern1, l = l)
+  R.xstarxprime <- rbind(cbind(S11, t(S21)),
+                         cbind(S21, S22)) +
+    diag(nugget, nrow(xstar) + nrow(xprime))
+
+  # CAREFUL SEE PAPER FOR ARG. ORDER
+  r.xstarprime.x <- rbind(covMatrix(X = xstar, X2 = x, sig2 = sig2,
+                                    covar.fun = r.matern, l = l),
+                          covMatrix(X = xprime, X2 = x, sig2 = sig2,
+                                    covar.fun = r.matern1, l = l))
+  mu.xstarprime <- r.xstarprime.x %*% Rinv %*% y
+
+  # because covMatrix has sig2 in it, have an extra one multiplying in???
+  tau2.xstarprime <- R.xstarxprime -
+    r.xstarprime.x %*% Rinv %*% t(r.xstarprime.x) #/ sig2current #???
+
+  # MAKE SURE tau2.xstarprime IS SYMMETRIC
+  tau2.xstarprime <- ( tau2.xstarprime + t(tau2.xstarprime) ) / 2
+
+  # MAKE SURE tau2.xstarprime IS POSTIVE SEMI-DEFINITE
+  # eigen(tau2.xstarprime)$values  # changed nugget to 10e-6 from -8
+
+  ystaryprimenew <- rmvnorm(1, mean = mu.xstarprime, sigma = tau2.xstarprime)
+
+  if
+
+  return(list(sig2current = sig2current,
+              accepted = accepted))
+
+}
+
 
 for (t in 1:TT) {
 
@@ -104,58 +229,37 @@ for (t in 1:TT) {
       ystarold <- particles.ystar[i,]
       yprimeold <- particles.yprime[i,]
 
+      ## current: either accepted proposal, or stay at old for this iteration
+
       ### UPDATE l #############################################################
-      lnew <- rnorm(1, mean = 5.7, sd = v1)
 
-      if (lnew > 0) {
+      lupdate <- update.l(lold = lold,
+                          sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
+                          given = given, step = step.l)
 
-        logHR <- logposterior(l = lnew,
-                              sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
-                              given = given) -
-          logposterior(l = lold,
-                       sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
-                       given = given)
+      lcurrent <- lupdate$lcurrent
+      accepted.l <- accepted.l + lupdate$accepted
 
-        cat("lnew logHR:", logHR)
-
-        if ( !is.nan(logHR) & !is.na(logHR) ) {  # when have -Inf - Inf get NaN
-          if ( logHR > log(runif(1)) )  {
-            particles.l.t[i] <- lnew
-            accepted.l <- accepted.l + 1
-          }
-        }
-
-      }
-
-      lcurrent <- particles.l.t[i]
       #cat("\t \t \t -> acceptance rate for l:", accepted.l / i, "\n")
 
       ### UPDATE sig2 ##########################################################
-      sig2new <- rchisq(1, df = sig2old) #rgamma(1, shape = sig2old/2, scale = 2)
-      logHR <- logposterior(l = lcurrent, sig2 = sig2new,
-                            ystar = ystarold, yprime = yprimeold,
-                            given = given) -
-        logposterior(l = lcurrent, sig2 = sig2old,
-                     ystar = ystarold, yprime = yprimeold,
-                     given = given)
 
-      cat("sig2new logHR:", logHR)
+      sig2update <- update.sig2(l = lcurrent, sig2old = sig2old,
+                                ystar = ystarold, yprime = yprimeold,
+                                given = given, step = step.sig2)
 
-      if ( !is.nan(logHR) & !is.na(logHR) ) {
+      sig2current <- sig2update$sig2current
+      accepted.sig2 <- accepted.sig2 + sig2update$accepted
 
-        if (logHR > log(runif(1))) {
-          particles.sig2.t[i] <- sig2new
-          accepted.sig2 <- accepted.sig2 + 1
-        }
-
-      }
-
-      sig2current <- particles.sig2.t[i]
       #cat("\t \t \t -> acceptance rate for sig2:", accepted.sig2 / i, "\n")
 
       ### UPDATE ystaryprime ###################################################
-      # why is this a proposal???
+      # did not need to do metropolis for eta_0 (particle initialisation)
+      # because when tau0 = 0 (no constraint), we can sample from the
+      # (ystar, ynew) | l, sig2 directly
       nugget <- 1e-6  # -7 caused 39/100 warnings
+
+      ## fix this solve; check the nugget
       Rinv <- solve(covMatrix(X = x, sig2 = sig2current,
                               covar.fun = r.matern, l = lcurrent) +
                       diag(nugget, nrow(x)))
