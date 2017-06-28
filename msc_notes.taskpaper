@@ -64,7 +64,7 @@ meetings:
 		# acceptance rate
 			- email DB about JASA paper (Todd Graves, JASA tuning MCMC) @done
 			- check EX1. and make those plots for some initial values;  @done
-				given initial value, x-axis = step-width for proposal, y-axis = acceptance rate
+				given initial value, x-axis = step-width for proposal, y-axis = acceptance rate i.e. inverse regression to choose step size based on acceptance rate
 				- report to DB aiming for 30-40%
 		- do the SMC finally
 	170620:
