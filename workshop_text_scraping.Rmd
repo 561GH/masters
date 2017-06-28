@@ -1,0 +1,83 @@
+# Jack's text processing and scraping
+
+* R treats strings as atomic vectors (unusual)
+* like tex, use backslash for special characters EX. \n, \", etc.
+
+```{r}
+print("On two \n lines")
+cat("On two \n lines")
+```
+
+## stringr package
+
+### regex
+* . : wildcard
+* include hypens at the end of a list
+* asterisk (*): allows for arbitrary number of things
+* brackets (pattern): allows for pattern to repeat multiple times
+
+Check out http://www.ultrapico.com/expresso.htm for regex builder
+
+```{r}
+library(stringr)
+
+# Detect the presence or absence of a pattern in a string
+str_detect("apples", "app") 
+
+# str_extract
+# str_extract_all
+# str_locate  # which() for strings
+
+ str_detect(c("dog","dig","dAg","dg","dawg"),"d[0-9a-zA-Z -]g")  # hypthen at the end
+ # fits with a greedy algorithm
+
+```
+
+## Edit distance
+Edit distance, also called Levenshtein distance, is a measure of the number of primary edits that would need to be made to transform one string into another. The R function adist() is used to find the edit distance.
+
+* measure is symmetric, triangle inequality holds, etc.
+* is the "shortest"" distance 
+* case matters; can use (toupper(), built in arg, etc.)
+
+str_trim() is also suepr useful
+str_split()
+
+EX. see the footbal example
+* adist() lets us easily identify teams via distance to a set of team names
+* generally robust to typos
+
+```{r}
+adist("Life isn't fair", "Fair isn't life")  # kind of dumb measure for this
+adist(str_split("life isn't fair", " "), str_split("fair isn't life", " "))
+```
+
+* read in text file line by line with readLines()
+
+## Web scraper
+
+* note distinction between reading hyperlinks and all URLs
+
+input_url = need "http://" in the beginning
+then getHtml(input_url) # gets links
+
+### use try() to do some error handling
+var = try(function, silet = TRUE)
+
+str_split(links, "\\?", 1)  # split at the questionmarks; keep the 1st result from the split
+# https://stackoverflow.com/questions/10602433/how-to-escape-a-question-mark-in-r
+
+## Sentiment analysis package exists
+meanr package?
+
+## Consider comparing sentences
+s1 <- "The dog jumped over the cat"
+s2 <- "The cat was jumped over by the dog"
+
+str_splot(c(s1, s2), "")  # split each sentence into words, and make a matrixof distances
+
+adist(words1, words2)
+
+consider that order of the words matters though, 
+i.e. "The cat jumped over the dog" would be mistaken for s1 if we split the words and ignore order
+
