@@ -97,11 +97,11 @@ meetings:
 			- add case study to CV @done
 			- email prof welch (bcc jabed?) @done
 			- make mvn functions coded part of the package actually (export etc.) @done
-Michael Smith Foreign Study Supplements:
-	http://www.sshrc-crsh.gc.ca/funding-financement/programs-programmes/fellowships/cgs_foreign_study-besc_etudes_etranger-eng.aspx
-	two deadlines for the CGS-MSFSS funding opportunity: June 10 and October 10
-	- SFU deadline = May 31
-	- the name and contact information of the host supervisor, and name and location of the foreign institution where you intend to pursue your research/study activities;
-	- a maximum two-page description of your intended research activities during your research study period abroad (including objectives, methodology, timelines and expected outcomes), an indication of how this relates to your main graduate research topic, and a description of the potential benefits that you will derive from working at, or attending, the host institution in relation to your current research objectives; and
-	- a budget that provides estimates for costs of travel, living and other expenses during your research study period abroad (to a maximum of $6,000); and
-	- for CGS Master’s and Vanier CGS recipients only, a copy of the research proposal for your most current CGS research proposal.
+questions:
+- why only allow l > 0.05 proposals?
+- nuseq definition? (defined as reciprocal of tau sequence)
+	- why power of 5?
+	- why use the reciprocal?
+- why are the weights logged? i.e. sum log(cdf() + cdf); end up taking exponent anyway
+	proably due to multiplying small numbers => underflow errors
+- why isn't reweighting following the if statement? i.e. why is resampling always done? 
