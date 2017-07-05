@@ -25,10 +25,13 @@ eta0 <- function(eta.init = init,
                  v1 = 8,  # step size for l proposal
                  v2 = 8) {# step size for sig2 proposal
 
+  xstar <- given$xstar
+  xprime <- given$xprime
+
   chain.l <- rep(NA, N)
   chain.sig2 <- rep(NA, N)
-  chain.ystar <- matrix(NA, nrow = length(xstar), ncol = N)
-  chain.yprime <- matrix(NA, nrow = length(xprime), ncol = N)
+  chain.ystar <- matrix(NA, nrow = N, ncol = length(xstar))
+  chain.yprime <- matrix(NA, nrow = N, ncol = length(xprime))
 
   ### Track acceptance rate
   accepted.l <- accepted.sig2 <- 0
@@ -45,14 +48,14 @@ eta0 <- function(eta.init = init,
     } else {
       lold <- chain.l[i-1]
       sig2old <- chain.l[i-1]
-      ystarold <- chain.ystar[,i-1]
-      yprimeold <- chain.yprime[,i-1]
+      ystarold <- chain.ystar[i-1,]
+      yprimeold <- chain.yprime[i-1,]
     }
 
     chain.l[i] <- lold
     chain.sig2[i] <- sig2old
-    chain.ystar[,i] <- ystarold
-    chain.yprime[,i] <- yprimeold
+    chain.ystar[i,] <- ystarold
+    chain.yprime[i,] <- yprimeold
 
     ## UPDATE l ##################################################################
     lnew <- rnorm(1, mean = lold, sd = v1)
@@ -139,8 +142,8 @@ eta0 <- function(eta.init = init,
     ystarnew <- ystaryprimenew[1:length(xstar)]
     yprimenew <- ystaryprimenew[(length(xstar)+1):length(ystaryprimenew)]
 
-    chain.ystar[,i] <- ystarnew
-    chain.yprime[,i] <- yprimenew
+    chain.ystar[i,] <- ystarnew
+    chain.yprime[i,] <- yprimenew
 
     cat("Finished iteration:", i, "\n \n")
 
