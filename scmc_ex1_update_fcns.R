@@ -25,7 +25,7 @@ update.l <- function(lold,
                    sig2 = sig2, ystar = ystar, yprime = yprime,
                    given = given)
 
-    cat("lnew logHR:", logHR)
+    #cat("lnew logHR:", logHR)
 
     if ( !is.nan(logHR) & !is.na(logHR) ) {  # when have -Inf - Inf get NaN
       if ( logHR > log(runif(1)) )  {
@@ -60,7 +60,7 @@ update.sig2 <- function(l, sig2old,
                  ystar = ystar, yprime = yprime,
                  given = given)
 
-  cat("sig2new logHR:", logHR)
+  #cat("sig2new logHR:", logHR)
 
   if ( !is.nan(logHR) & !is.na(logHR) ) {
 
@@ -136,7 +136,7 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
     logposterior(l = l, sig2 = sig2, ystar = ystarold, yprimeold,
                  given = given)
 
-  cat("ystaryprime logHR:", logHR)
+  #cat("ystaryprime logHR:", logHR)
 
   if ( !is.nan(logHR) & !is.na(logHR) ) {
     if ( logHR > log(runif(1)) ) {

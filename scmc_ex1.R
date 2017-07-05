@@ -4,7 +4,7 @@
 # run: scmc_ex1_initialise
 # + build package
 
-M <- 3  # total time
+M <- 20  # total time
 # tauM <- 10e-6
 # taus <- seq(0, tauM, length.out = M+1)  # TODO: sequence of taus???
 # taus <- taus[2:length(taus)]
@@ -25,7 +25,8 @@ particles.ystar <- array(NA, dim = c(N, M, nrow(given$xstar)))
 particles.yprime <- array(NA, dim = c(N, M, nrow(given$xprime)))
 
 init <- eta0(eta.init = list(l = 5.7, sig2 = 1,
-                             ystar = ytrue(given$xstar) - mean(ytrue(given$x)),
+                             ystar = ytrue(given$xstar) - mean(ytrue(given$x)) +
+                               rnorm(nrow(given$xstar), sd = 0.5),  # so init is not so good
                              yprime = 20 / (20 * given$xprime) ),
              given = given,  # data, locations, obs, etc.)
              N = burn + N, # particles
@@ -65,6 +66,8 @@ step.ystaryprime <- 1  # tune this
 
 for (t in 2:M) {
 
+  cat("\n Starting time step:", t, "out of", M, "\n")
+
   particles.l[,t] <- particles.l[,t-1]
   particles.sig2[,t] <- particles.sig2[,t-1]
   particles.ystar[,t,] <- particles.ystar[,t-1,]
@@ -82,10 +85,15 @@ for (t in 2:M) {
     num <- sum( log( pnorm( x * taus[t] )))
     den <- sum( log( pnorm( x * taus[t-1] )))
     return( exp(num - den) )
+    #return( (num - den) )
   }
 
   w.tildes <- apply(particles.yprime[,t,], MARGIN = 1, FUN = weight.particle)
   W[,t] <- W[,t-1] * w.tildes
+#
+#   if (sum(W[,t] == 0)) {
+#
+#   }
   W[,t] <- W[,t] / sum(W[,t])  # normalise weights
 
   ## RESAMPLING ================================================================

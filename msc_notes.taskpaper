@@ -104,6 +104,11 @@ questions:
 	- why use the reciprocal?
 - why are the weights logged? i.e. sum log(cdf() + cdf); end up taking exponent anyway
 	proably due to multiplying small numbers => underflow errors
+	yes that is the case: http://www.nowozin.net/sebastian/blog/effective-sample-size-in-importance-sampling.html
 - why isn't reweighting following the if statement? i.e. why is resampling always done? 
 - step size for sampling l is sd(l) ?? why??
 - what does acceptance rate mean for S(C)MC?
+- when set M = 3 for 5 particles, at t = 3, all the particle weights drop to zero
+- yprime issues
+	- how is the mean expected to be zero???
+	- the estimates suck
