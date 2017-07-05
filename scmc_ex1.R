@@ -37,9 +37,7 @@ particles.yprime <- array(NA, dim = c(N, M, nrow(given$xprime)))
 init <- eta0(eta.init = list(l = 5.7, sig2 = 1,
                              ystar = ytrue(xstar) - mean(ytrue(x)),
                              yprime = 20 / (20 * xprime) ),
-             given = list(x = cbind(x),
-                          xprime = cbind(xprime), xstar = cbind(xstar),
-                          y = y),  # data, locations, obs, etc.)
+             given = given,  # data, locations, obs, etc.)
              N = burn + N, # particles
              v1 = 0.01, # step size for l proposal
              v2 = 3) # step size for sig2 proposal
