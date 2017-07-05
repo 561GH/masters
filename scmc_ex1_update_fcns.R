@@ -1,4 +1,5 @@
 ### Sampling functions #########################################################
+library(foreach)
 # return:
 #     current: either accepted proposal, or stay at old for this iteration
 #     accepted: 1 (accepted) or 0 (not accepted)
@@ -13,7 +14,7 @@ update.l <- function(lold,
   lcurrent <- lold
   accepted <- 0
 
-  lnew <- rnorm(1, mean = 5.7, sd = step.l)  # TODO: check proposal with shirin
+  lnew <- rnorm(1, mean = lold, sd = step.l)  # TODO: check proposal with shirin
 
   if (lnew > 0) {
 
@@ -127,8 +128,8 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
   # eigen(tau2.xstarprime)$values  # changed nugget to 10e-6 from -8
 
   ystaryprimenew <- rmvnorm(1, mean = mu.xstarprime, sigma = tau2.xstarprime)
-  ystarnew <- ystaryprimenew[1:nrow(xstar),]
-  yprimenew <- ystaryprimenew[-(1:nrow(xstar)),]
+  ystarnew <- ystaryprimenew[,1:nrow(xstar)]
+  yprimenew <- ystaryprimenew[,-(1:nrow(xstar))]
 
   logHR <- logposterior(l = l, sig2 = sig2, ystar = ystarnew, yprime = yprimenew,
                         given = given) -
@@ -163,25 +164,22 @@ combine.particles <- function(out1, out2) {
 
 }
 
-update.all <- function(t = t, accepted,  # TODO: acceptance rates???
-                       particles.l.t = particles.l.t,
-                       particles.sig2.t = particles.sig2.t,
-                       particles.ystar.t = particles.ystar.t,
-                       particles.yprime.t = particles.yprime.t) { # TODO: fill this in
+update.all <- function(accepted = NULL,
+                       steps = NULL,
+                       particles.l.old,
+                       particles.sig2.old,
+                       particles.ystar.old,
+                       particles.yprime.old) {
+
+  # TODO: acceptance rates what
+  accepted.l <- accepted.sig2 <- accepted.ystaryprime <- 0
 
   foreach(i = 1:N, .combine = "combine.particles") %dopar% {
 
-    lold <- particles.l.t[i]
-    sig2old <- particles.sig2.t[i]
-    # all the "parts" for a single particle are spread accross elements
-    # in a list => need to get the ith entry from each element of the list
-    # to get the full ith particle for ystar and yprime
-    ystarold <- lapply(1:nrow(given$xstar),
-                       function(x) (particles.ystar.t[[x]])[i])
-    ystarold <- unlist(ystarold)  # full ith particle for ystar as a vector
-    yprimeold <- lapply(1:nrow(given$xprime),
-                       function(x) (particles.xprime.t[[x]])[i])
-    yprimeold <- unlist(yprimeold)  # full ith particle for yprime as a vector
+    lold <- particles.l.old[i]
+    sig2old <- particles.sig2.old[i]
+    ystarold <- particles.ystar.old[i,] # full ith particle for ystar as a vector
+    yprimeold <- particles.yprime.old[i,] # full ith particle for yprime as a vector
 
     ## current: either accepted proposal, or stay at old for this iteration
 
@@ -212,9 +210,9 @@ update.all <- function(t = t, accepted,  # TODO: acceptance rates???
     # because when tau0 = 0 (no constraint), we can sample from the
     # (ystar, ynew) | l, sig2 directly
 
-    ystaryprimeupdate <- update.ystaryprime(l = lcurrent, sig2old = sig2current,
+    ystaryprimeupdate <- update.ystaryprime(l = lcurrent, sig2 = sig2current,
                               ystar = ystarold, yprime = yprimeold,
-                              given = given, step = step.ystaryprimenew)
+                              given = given, step = step.ystaryprime)
 
     ystarcurrent <- ystaryprimeupdate$ystarcurrent
     yprimecurrent <- ystaryprimeupdate$yprimecurrent
@@ -222,14 +220,14 @@ update.all <- function(t = t, accepted,  # TODO: acceptance rates???
 
     ### UPDATE chains ##########################################################
 
-    return( list(l = lcurrent,
-                 sig2 = sig2current,
-                 ystar = ystarcurrent,
-                 yprime = yprimecurrent,
-                 acceptances =
-                    cbind(accepted.l = accepted.l,
-                          accepted.sig2 = accepted.sig2,
-                          accepted.ystaryprime = accepted.ystaryprime)) )
+    list(l = lcurrent,
+         sig2 = sig2current,
+         ystar = ystarcurrent,
+         yprime = yprimecurrent,
+         acceptances =
+           cbind(accepted.l = accepted.l,
+                 accepted.sig2 = accepted.sig2,
+                 accepted.ystaryprime = accepted.ystaryprime))
 
   }
 

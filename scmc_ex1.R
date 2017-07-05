@@ -1,20 +1,10 @@
 # SCMC toy example
 ## response y must be scalar
 
-## setup
-ytrue <- function(x) {log(20 * x + 1)}  # x > -1/20; monotone increasing function
+# run: scmc_ex1_initialise
+# + build package
 
-# x = inputs where fcn evaluated
-# xstar = prediction set inputs
-# xprime = derivative set inputs
-# true/known model values
-given <- list(x = cbind(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1)),
-              xstar = cbind(seq(0, 1, length.out = 50)),
-              xprime = cbind(c(0.42, 0.47, 0.52, 0.57, 0.62,
-                               0.67, 0.72, 0.77, 0.82, 0.87)),
-              y = ytrue(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1)) )
-
-M <- 5  # total time
+M <- 3  # total time
 # tauM <- 10e-6
 # taus <- seq(0, tauM, length.out = M+1)  # TODO: sequence of taus???
 # taus <- taus[2:length(taus)]
@@ -22,21 +12,21 @@ M <- 5  # total time
 # shirin's tau sequence i.e. reciprocal of her nuseq
 taus <- 1 / c(Inf, ( seq(2, .1, length.out = M-1) )^5)
 
-N <- 3  # particles desired for SCMC
+N <- 5  # particles desired for SCMC
 burn <- 10  # burn in for initialising particles
 
 ################################################################################
 # 1. initialise (ith row = ith particle) #######################################
 ################################################################################
 # dim1 = particle, dim2 = time, dim3 = input index
-particles.l <- matrix(NA, ncol = M, nrow = N)
-particles.sig2 <- matrix(NA, ncol = M, nrow = N)
+particles.l <- matrix(NA, nrow = N, ncol = M)
+particles.sig2 <- matrix(NA, nrow = N, ncol = M)
 particles.ystar <- array(NA, dim = c(N, M, nrow(given$xstar)))
 particles.yprime <- array(NA, dim = c(N, M, nrow(given$xprime)))
 
 init <- eta0(eta.init = list(l = 5.7, sig2 = 1,
-                             ystar = ytrue(xstar) - mean(ytrue(x)),
-                             yprime = 20 / (20 * xprime) ),
+                             ystar = ytrue(given$xstar) - mean(ytrue(given$x)),
+                             yprime = 20 / (20 * given$xprime) ),
              given = given,  # data, locations, obs, etc.)
              N = burn + N, # particles
              v1 = 0.01, # step size for l proposal
@@ -48,8 +38,8 @@ particles.ystar[,1,] <- (init$chain.ystar)[-(1:burn),]
 particles.yprime[,1,] <- (init$chain.yprime)[-(1:burn),]
 
 cat("Acceptance rates from initialisation: \n",
-    "\t \t \t l: ", init$accepted.l / (burn + N), "\n",
-    "\t \t \t sig2: ", init$accepted.sig2 / (burn + N), "\n \n")
+    "\t l: ", init$accepted.l / (burn + N), "\n",
+    "\t sig2: ", init$accepted.sig2 / (burn + N), "\n \n")
 
 ################################################################################
 # 2. weights at time t = 1 #####################################################
@@ -63,10 +53,10 @@ W[,1] <- 1/N
 # 3. looping through t = 1, ..., M-1 ##########################################
 ################################################################################
 step.l <- 0.01  # step size for l
-step.sig2 <- 6  # step size for sig2
-step.ystarynew <- 1  # tune this
+step.sig2 <- 3  # step size for sig2
+step.ystaryprime <- 1  # tune this
 
-# should let step size vary to provide decent acceptance rates (during burn in?)
+# TODO: should let step size vary to provide decent acceptance rates (during burn in?)
 
 # ==============================================================================
 ## despite notation in the algorithm, "eta0" will really count as the first
@@ -87,6 +77,8 @@ for (t in 2:M) {
   weight.particle <- function(x) {
     # x = derivative values for all inputs for a particle
     # i.e. vector of y'(x_d) for all d
+    # print(length(x))  # make sure this is the number of derivative inputs
+
     num <- sum( log( pnorm( x * taus[t] )))
     den <- sum( log( pnorm( x * taus[t-1] )))
     return( exp(num - den) )
@@ -120,7 +112,14 @@ for (t in 2:M) {
   accepted.l <- accepted.sig2 <- accepted.ystaryprime <- 0
 
   ### Sample and update chains =================================================
-  particles.new <- update.all()  # TODO: fill this in after update.all done (acceptance rates ???)
+  # TODO: fill this in after update.all done (acceptance rates ??? ignore for now)
+  # TODO: adaptively chance step sizes
+
+  particles.new <- update.all(particles.l.old = particles.l[,t-1],
+                              particles.sig2.old = particles.sig2[,t-1],
+                              particles.ystar.old = particles.ystar[,t-1,],
+                              particles.yprime.old = particles.yprime[,t-1,])
+
   acceptances <- particles.new$acceptances  # N by 3 matrix of acceptances
 
   particles.l[,t] <- particles.new$l

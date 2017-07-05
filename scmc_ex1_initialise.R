@@ -1,6 +1,6 @@
 # SCMC initialise particles
 
-## run setup
+## run setup ###################################################################
 library(mvtnorm)
 ytrue <- function(x) {log(20 * x + 1)}  # x > -1/20; monotone increasing function
 
@@ -15,6 +15,7 @@ given <- list(x = cbind(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1)),
               y = ytrue(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1)) )
 
 ## start MH within gibbs #######################################################
+# i.e. unconstrained SCMC
 
 eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
                  given,  # data, locations, obs, etc.
@@ -161,13 +162,14 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
   return(chains)
 }
 
-# test
-burn <- 7
-N <- 5
-init <- eta0(eta.init = list(l = 5.7, sig2 = 1,
-                             ystar = ytrue(given$xstar) - mean(ytrue(given$x)),
-                             yprime = 20 / (20 * given$xprime) ),
-             given = given,  # data, locations, obs, etc.)
-             N = burn + N, # particles
-             v1 = 0.01, # step size for l proposal
-             v2 = 3) # step size for sig2 proposal
+################################################################################
+# # test
+# burn <- 7
+# N <- 5
+# init <- eta0(eta.init = list(l = 5.7, sig2 = 1,
+#                              ystar = ytrue(given$xstar) - mean(ytrue(given$x)),
+#                              yprime = 20 / (20 * given$xprime) ),
+#              given = given,  # data, locations, obs, etc.)
+#              N = burn + N, # particles
+#              v1 = 0.01, # step size for l proposal
+#              v2 = 3) # step size for sig2 proposal

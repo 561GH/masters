@@ -105,3 +105,5 @@ questions:
 - why are the weights logged? i.e. sum log(cdf() + cdf); end up taking exponent anyway
 	proably due to multiplying small numbers => underflow errors
 - why isn't reweighting following the if statement? i.e. why is resampling always done? 
+- step size for sampling l is sd(l) ?? why??
+- what does acceptance rate mean for S(C)MC?
