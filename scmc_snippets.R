@@ -82,3 +82,9 @@ particles.ystar[,5,] <- particles.ystar.old
 particles.ystar
 
 # behaves totally as expected => switch to arrays
+
+# trying to figure out nuseq from shirin's SMC code
+M <- 10  # max time
+nuseq <- c(Inf, (seq(2, .1, length = M-1))^5)
+nuseq
+
