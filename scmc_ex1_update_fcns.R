@@ -94,13 +94,12 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
   # did not need to do metropolis for eta_0 (particle initialisation)
   # because when tau0 = 0 (no constraint), we can sample from the
   # (ystar, ynew) | l, sig2 directly
-  nugget <- 1e-6  # -7 caused 39/100 warnings
-
-  ## fix this solve; check the nugget;
-  # OR check with another inversion method
-  Rinv <- solve(covMatrix(X = x, sig2 = sig2,
-                          covar.fun = r.matern, l = l) +
-                  diag(nugget, nrow(x)))
+  nugget <- 1e-6
+  R <- covMatrix(X = x, sig2 = sig2,
+                 covar.fun = r.matern, l = l) +
+    diag(nugget, nrow(x))
+  Linv <- solve( t(chol(R)) )  # recall need transpose to match std chol def
+  Rinv <- t(Linv) %*% Linv
 
   S11 <- covMatrix(X = xstar, sig2 = sig2, covar.fun = r.matern, l = l)
   S22 <- covMatrix(X = xprime, sig2 = sig2, covar.fun = r.matern2, l = l)

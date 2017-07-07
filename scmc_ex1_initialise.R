@@ -108,10 +108,13 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
     cat("\t \t \t -> acceptance rate for sig2:", accepted.sig2 / i, "\n")
 
     ## UPDATE ystaryprime ########################################################
-    nugget <- 1e-6  # -7 caused 39/100 warnings
-    Rinv <- solve(covMatrix(X = x, sig2 = sig2current,
-                            covar.fun = r.matern, l = lcurrent) +
-                    diag(nugget, nrow(x)))
+    nugget <- 1e-6
+    R <- covMatrix(X = x, sig2 = sig2current,
+                   covar.fun = r.matern, l = lcurrent) +
+      diag(nugget, nrow(x))
+    # Linv <- solve( t(chol(R)) )  # recall need transpose to match std chol def
+    # Rinv <- t(Linv) %*% Linv
+    Rinv <- solve(R)
 
     S11 <- covMatrix(X = xstar, sig2 = sig2current, covar.fun = r.matern, l = lcurrent)
     S22 <- covMatrix(X = xprime, sig2 = sig2current, covar.fun = r.matern2, l = lcurrent)
@@ -136,12 +139,11 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
     tau2.xstarprime <- ( tau2.xstarprime + t(tau2.xstarprime) ) / 2
 
     # MAKE SURE tau2.xstarprime IS POSTIVE SEMI-DEFINITE
-    # eigen(tau2.xstarprime)$values  # changed nugget to 10e-6 from -8
-
+    # eigen(tau2.xstarprime)$values
 
     ystaryprimenew <- rmvnorm(1, mean = mu.xstarprime, sigma = tau2.xstarprime)
-    ystarnew <- ystaryprimenew[1:length(xstar)]
-    yprimenew <- ystaryprimenew[(length(xstar)+1):length(ystaryprimenew)]
+    ystarnew <- ystaryprimenew[,1:nrow(xstar)]
+    yprimenew <- ystaryprimenew[,-(1:nrow(xstar))]
 
     chain.ystar[i,] <- ystarnew
     chain.yprime[i,] <- yprimenew

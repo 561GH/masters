@@ -3,6 +3,7 @@
 
 # run: scmc_ex1_initialise
 # + build package
+set.seed(761)
 
 M <- 20  # total time
 # tauM <- 10e-6
@@ -12,8 +13,8 @@ M <- 20  # total time
 # shirin's tau sequence i.e. reciprocal of her nuseq
 taus <- 1 / c(Inf, ( seq(2, .1, length.out = M-1) )^5)
 
-N <- 5  # particles desired for SCMC
-burn <- 10  # burn in for initialising particles
+N <- 100  # particles desired for SCMC
+burn <- 50  # burn in for initialising particles
 
 ################################################################################
 # 1. initialise (ith row = ith particle) #######################################
@@ -26,12 +27,12 @@ particles.yprime <- array(NA, dim = c(N, M, nrow(given$xprime)))
 
 init <- eta0(eta.init = list(l = 5.7, sig2 = 1,
                              ystar = ytrue(given$xstar) - mean(ytrue(given$x)) +
-                               rnorm(nrow(given$xstar), sd = 0.5),  # so init is not so good
+                               rnorm(nrow(given$xstar), sd = 0.1),  # so init is not so good
                              yprime = 20 / (20 * given$xprime) ),
              given = given,  # data, locations, obs, etc.)
              N = burn + N, # particles
-             v1 = 0.01, # step size for l proposal
-             v2 = 3) # step size for sig2 proposal
+             v1 = 0.008, # step size for l proposal
+             v2 = 5) # step size for sig2 proposal
 
 particles.l[,1] <- (init$chain.l)[-(1:burn)]
 particles.sig2[,1] <- (init$chain.sig2)[-(1:burn)]
@@ -77,6 +78,15 @@ for (t in 2:M) {
   ### dim1 = particle, dim2 = t-th iteration weight
 
   ### calculate weight for each particle
+
+  # TODO: debugging the dying weights issue
+  # for (i in 1:N) {
+  #   x <- particles.yprime[i,t,]
+  #   num <- sum( log( pnorm( x * taus[t] )))
+  #   den <- sum( log( pnorm( x * taus[t-1] )))
+  #   cat("num:", num, "; den:", den, "\n")
+  # }
+
   weight.particle <- function(x) {
     # x = derivative values for all inputs for a particle
     # i.e. vector of y'(x_d) for all d
