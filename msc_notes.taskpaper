@@ -97,18 +97,42 @@ meetings:
 			- add case study to CV @done
 			- email prof welch (bcc jabed?) @done
 			- make mvn functions coded part of the package actually (export etc.) @done
+	170707:
+		- check my covariance functions with shirin's
+		- check the numerical slope with GP slope
+			no need to have the awkward gap in sampled points... just take 10 equally spaced points between 0 to 1
+		- what happens when I also set the means corresponding to derivatives to 0?
+		nugget size of 10e-5 is fine (so my 10e-6 is really fine)
 questions:
 - why only allow l > 0.05 proposals?
+	probably for numerical stability reasons; also length scale close to zero is stupid
+- why ginv() in MCMC_unconstrained?
+- what's going on with the covariances when generating initial values for MCMC_unconstrained I think
+		Rdq <- 0.001 * Rd  # why the 0.001???
+		cc <- t(as.matrix(covmat[1:n, (n + 1):(n + m)]))
+		RR <- covmat[1:n, 1:n]
+		mean <- t(C) %*% Rinv %*% y_obs
+		mean1 <- mean[(n + 1):(n + m)]  # derivative values I think
+		mean1[mean1 < 0] <- 0  # ???
 - nuseq definition? (defined as reciprocal of tau sequence)
 	- why power of 5?
 	- why use the reciprocal?
-- why are the weights logged? i.e. sum log(cdf() + cdf); end up taking exponent anyway
+- why are the weights logged? i.e. sum log(cdf() + cdf); end up taking exponent anyway @done
 	proably due to multiplying small numbers => underflow errors
 	yes that is the case: http://www.nowozin.net/sebastian/blog/effective-sample-size-in-importance-sampling.html
 - why isn't reweighting following the if statement? i.e. why is resampling always done? 
 - step size for sampling l is sd(l) ?? why??
 - what does acceptance rate mean for S(C)MC?
+	- how did you assess this?
 - when set M = 3 for 5 particles, at t = 3, all the particle weights drop to zero
 - yprime issues
-	- how is the mean expected to be zero???
 	- the estimates suck
+	- the signs are wrong
+- ystar issues
+	- why are the estimates too good
+- nugget size (shirin uses 1e-5)
+	- particle initialisation: 10e-8 not enough; 10e-7 (5/15 warnings)
+	- main SCMC: 10-8 some warnings? 10e-7
+	- is it better to choose a larger nugget to kill off all warning messages or are a few ok?
+- speed
+	- expectations?
