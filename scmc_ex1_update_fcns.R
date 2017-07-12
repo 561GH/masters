@@ -95,7 +95,7 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
   # because when tau0 = 0 (no constraint), we can sample from the
   # (ystar, ynew) | l, sig2 directly
   nugget <- 1e-6
-  R <- covMatrix(X1 = x, X2 = x, sig2 = sig2current, l = lcurrent,
+  R <- covMatrix(X1 = x, X2 = x, sig2 = sig2, l = l,
                  covar.fun = "matern") +
     diag(nugget, nrow(x))
   Linv <- solve( t(chol(R)) )  # recall need transpose to match std chol def
