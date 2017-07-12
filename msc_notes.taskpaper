@@ -99,40 +99,55 @@ meetings:
 			- make mvn functions coded part of the package actually (export etc.) @done
 	170707:
 		- check my covariance functions with shirin's
+			interp. first derivative as distance goes to zero, derivative value and non derivative value uncorrelated
+			first deriv covariance does not have to be positive definite because think k(xstar, x) is not necessarily
+				and diagonals are no longer variances
+			but second deriv should be because the diagonals are actually variance of the derivative 
 		- check the numerical slope with GP slope
 			no need to have the awkward gap in sampled points... just take 10 equally spaced points between 0 to 1
 		- what happens when I also set the means corresponding to derivatives to 0?
 		nugget size of 10e-5 is fine (so my 10e-6 is really fine)
+		gaussian process stuff
+			think about the universe i.e. we really only have a single realisation (sample size 1) which means we have no measure of noise
+			also any discrepancy = delta term
+			if we have physical measurements, that's where discrepancy and noise come in 
+			consider that it's not possible to actually get the true GP parameters because the true GP parameters are for the "population" but since we only have a single set of numbers = a single sample/realisation of the GP, the GP parameters we estimate are really just specific for that single sample
+		yes the derivative GP covariance matrix is symmetric (says michael and derek); i.e. eqn (3.8) is symmetric BUT our covMatrix function is really just for calculating the lower triangle!
+			shirin's matcorder is missing a negative sign
+			the appendix is wrong for the second derivative of the matern (no divided by 2, no sign term)
+		- fix matern2 i.e. what are you even calculating??
+		- change all calls to covMatrix() @due
 questions:
-- why only allow l > 0.05 proposals?
-	probably for numerical stability reasons; also length scale close to zero is stupid
-- why ginv() in MCMC_unconstrained?
-- what's going on with the covariances when generating initial values for MCMC_unconstrained I think
-		Rdq <- 0.001 * Rd  # why the 0.001???
-		cc <- t(as.matrix(covmat[1:n, (n + 1):(n + m)]))
-		RR <- covmat[1:n, 1:n]
-		mean <- t(C) %*% Rinv %*% y_obs
-		mean1 <- mean[(n + 1):(n + m)]  # derivative values I think
-		mean1[mean1 < 0] <- 0  # ???
-- nuseq definition? (defined as reciprocal of tau sequence)
-	- why power of 5?
-	- why use the reciprocal?
-- why are the weights logged? i.e. sum log(cdf() + cdf); end up taking exponent anyway @done
-	proably due to multiplying small numbers => underflow errors
-	yes that is the case: http://www.nowozin.net/sebastian/blog/effective-sample-size-in-importance-sampling.html
-- why isn't reweighting following the if statement? i.e. why is resampling always done? 
-- step size for sampling l is sd(l) ?? why??
-- what does acceptance rate mean for S(C)MC?
-	- how did you assess this?
-- when set M = 3 for 5 particles, at t = 3, all the particle weights drop to zero
-- yprime issues
-	- the estimates suck
-	- the signs are wrong
-- ystar issues
-	- why are the estimates too good
-- nugget size (shirin uses 1e-5)
-	- particle initialisation: 10e-8 not enough; 10e-7 (5/15 warnings)
-	- main SCMC: 10-8 some warnings? 10e-7
-	- is it better to choose a larger nugget to kill off all warning messages or are a few ok?
-- speed
-	- expectations?
+	- why only allow l > 0.05 proposals?
+		probably for numerical stability reasons; also length scale close to zero is stupid
+	- why ginv() in MCMC_unconstrained?
+	- what's going on with the covariances when generating initial values for MCMC_unconstrained I think
+			Rdq <- 0.001 * Rd  # why the 0.001???
+			cc <- t(as.matrix(covmat[1:n, (n + 1):(n + m)]))
+			RR <- covmat[1:n, 1:n]
+			mean <- t(C) %*% Rinv %*% y_obs
+			mean1 <- mean[(n + 1):(n + m)]  # derivative values I think
+			mean1[mean1 < 0] <- 0  # ???
+	- nuseq definition? (defined as reciprocal of tau sequence)
+		- why power of 5?
+		- why use the reciprocal?
+	- why are the weights logged? i.e. sum log(cdf() + cdf); end up taking exponent anyway @done
+		proably due to multiplying small numbers => underflow errors
+		yes that is the case: http://www.nowozin.net/sebastian/blog/effective-sample-size-in-importance-sampling.html
+	- why isn't reweighting following the if statement? i.e. why is resampling always done? 
+	- step size for sampling l is sd(l) ?? why??
+	- what does acceptance rate mean for S(C)MC?
+		- how did you assess this?
+	- when set M = 3 for 5 particles, at t = 3, all the particle weights drop to zero
+	- yprime issues
+		- the estimates suck
+		- the signs are wrong
+	- ystar issues
+		- why are the estimates too good
+		it's because the length scale is huge... consider that it's over 5, but then x only goes from 0 to 1... 
+	- nugget size (shirin uses 1e-5)
+		- particle initialisation: 10e-8 not enough; 10e-7 (5/15 warnings)
+		- main SCMC: 10-8 some warnings? 10e-7
+		- is it better to choose a larger nugget to kill off all warning messages or are a few ok?
+	- speed
+		- expectations?
