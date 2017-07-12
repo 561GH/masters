@@ -107,6 +107,7 @@ meetings:
 			no need to have the awkward gap in sampled points... just take 10 equally spaced points between 0 to 1
 		- what happens when I also set the means corresponding to derivatives to 0?
 		nugget size of 10e-5 is fine (so my 10e-6 is really fine)
+	170711:
 		gaussian process stuff
 			think about the universe i.e. we really only have a single realisation (sample size 1) which means we have no measure of noise
 			also any discrepancy = delta term
