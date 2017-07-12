@@ -29,7 +29,7 @@ for (n in 1:N) {
 tmp <- apply(particles.yprime[,13,], MARGIN = 2, FUN = mean)
 plot(x = given$xprime, y = tmp, type = "l")
 tmp
-c(20 / (20 * given$xprime))
+points(x = given$xprime, y = c(20 / (20 * given$xprime)))
 
 ################################################################################
 library(MonGP)
