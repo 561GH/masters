@@ -95,25 +95,30 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
   # because when tau0 = 0 (no constraint), we can sample from the
   # (ystar, ynew) | l, sig2 directly
   nugget <- 1e-6
-  R <- covMatrix(X = x, sig2 = sig2,
-                 covar.fun = r.matern, l = l) +
+  R <- covMatrix(X1 = x, X2 = x, sig2 = sig2current, l = lcurrent,
+                 covar.fun = "matern") +
     diag(nugget, nrow(x))
   Linv <- solve( t(chol(R)) )  # recall need transpose to match std chol def
   Rinv <- t(Linv) %*% Linv
 
-  S11 <- covMatrix(X = xstar, sig2 = sig2, covar.fun = r.matern, l = l)
-  S22 <- covMatrix(X = xprime, sig2 = sig2, covar.fun = r.matern2, l = l)
-  S21 <- covMatrix(X = xprime, X2 = xstar,  # CAREFUL SEE PAPER FOR ARG. ORDER
-                   sig2 = sig2, covar.fun = r.matern1, l = l)
+  S11 <- covMatrix(X1 = xstar, X2 = xstar, sig2 = sig2, l = l,
+                   covar.fun = "matern")
+  S22 <- covMatrix(X1 = xprime, X2 = xprime, sig2 = sig2, l = l,
+                   covar.fun = "matern2", d1 = 1, d2 = 1)
+  S21 <- covMatrix(X1 = xprime, X2 = xstar,  # CAREFUL SEE PAPER FOR ARG. ORDER
+                   sig2 = sig2, l = l,
+                   covar.fun = "matern1", d1 = 1)
   R.xstarxprime <- rbind(cbind(S11, t(S21)),
                          cbind(S21, S22)) +
     diag(nugget, nrow(xstar) + nrow(xprime))
 
   # CAREFUL SEE PAPER FOR ARG. ORDER
-  r.xstarprime.x <- rbind(covMatrix(X = xstar, X2 = x, sig2 = sig2,
-                                    covar.fun = r.matern, l = l),
-                          covMatrix(X = xprime, X2 = x, sig2 = sig2,
-                                    covar.fun = r.matern1, l = l))
+  r.xstarprime.x <- rbind(covMatrix(X1 = xstar, X2 = x,
+                                    sig2 = sig2, l = l,
+                                    covar.fun = "matern"),
+                          covMatrix(X1 = xprime, X2 = x,
+                                    sig2 = sig2, l = l,
+                                    covar.fun = "matern1", d1 = 1))
   mu.xstarprime <- r.xstarprime.x %*% Rinv %*% y
 
   # because covMatrix has sig2 in it, have an extra one multiplying in???
