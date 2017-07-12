@@ -35,7 +35,7 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
   chain.yprime <- matrix(NA, nrow = N, ncol = length(xprime))
 
   ### Track acceptance rate
-  accepted.l <- accepted.sig2 <- 0
+  accepted.l <- accepted.sig2 <- rep(0, N)
 
   for (i in 1:N) {
 
@@ -75,14 +75,14 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
       if ( !is.nan(logHR) & !is.na(logHR) ) {  # when have -Inf - Inf get NaN
         if ( logHR > log(runif(1)) )  {
           chain.l[i] <- lnew
-          accepted.l <- accepted.l + 1
+          accepted.l[i] <- 1
         }
       }
 
     }
 
     lcurrent <- chain.l[i]
-    cat("\t \t \t -> acceptance rate for l:", accepted.l / i, "\n")
+    cat("\t \t \t -> acceptance rate for l:", sum(accepted.l) / i, "\n")
 
     ## UPDATE sig2 ###############################################################
     sig2new <- rchisq(1, df = sig2old) #rgamma(1, shape = sig2old/2, scale = 2)
@@ -99,41 +99,47 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
 
       if (logHR > log(runif(1))) {
         chain.sig2[i] <- sig2new
-        accepted.sig2 <- accepted.sig2 + 1
+        accepted.sig2[i] <- 1
       }
 
     }
 
     sig2current <- chain.sig2[i]
-    cat("\t \t \t -> acceptance rate for sig2:", accepted.sig2 / i, "\n")
+    cat("\t \t \t -> acceptance rate for sig2:", sum(accepted.sig2) / i, "\n")
 
     ## UPDATE ystaryprime ########################################################
     nugget <- 1e-6
-    R <- covMatrix(X = x, sig2 = sig2current,
-                   covar.fun = r.matern, l = lcurrent) +
+    R <- covMatrix(X1 = x, X2 = x, sig2 = sig2current, l = lcurrent,
+                   covar.fun = "matern") +
       diag(nugget, nrow(x))
     Linv <- solve( t(chol(R)) )  # recall need transpose to match std chol def
     Rinv <- t(Linv) %*% Linv
     # Rinv <- solve(R)
 
-    S11 <- covMatrix(X = xstar, sig2 = sig2current, covar.fun = r.matern, l = lcurrent)
-    S22 <- covMatrix(X = xprime, sig2 = sig2current, covar.fun = r.matern2, l = lcurrent)
-    S21 <- covMatrix(X = xprime, X2 = xstar,  # CAREFUL SEE PAPER FOR ARG. ORDER
-                     sig2 = sig2current, covar.fun = r.matern1, l = lcurrent)
+    S11 <- covMatrix(X1 = xstar, X2 = xstar, sig2 = sig2current, l = lcurrent,
+                     covar.fun = "matern")
+    S22 <- covMatrix(X1 = xprime, X2 = xprime, sig2 = sig2current, l = lcurrent,
+                     covar.fun = "matern2", d1 = 1, d2 = 1)
+    S21 <- covMatrix(X1 = xprime, X2 = xstar,  # CAREFUL SEE PAPER FOR ARG. ORDER
+                     sig2 = sig2current, l = lcurrent,
+                     covar.fun = "matern1", d1 = 1)
     R.xstarxprime <- rbind(cbind(S11, t(S21)),
                            cbind(S21, S22)) +
       diag(nugget, nrow(xstar) + nrow(xprime))
 
     # CAREFUL SEE PAPER FOR ARG. ORDER
-    r.xstarprime.x <- rbind(covMatrix(X = xstar, X2 = x, sig2 = sig2current,
-                                      covar.fun = r.matern, l = lcurrent),
-                            covMatrix(X = xprime, X2 = x, sig2 = sig2current,
-                                      covar.fun = r.matern1, l = lcurrent))
+    r.xstarprime.x <- rbind(covMatrix(X1 = xstar, X2 = x,
+                                      sig2 = sig2current, l = lcurrent,
+                                      covar.fun = "matern"),
+                            covMatrix(X1 = xprime, X2 = x,
+                                      sig2 = sig2current, l = lcurrent,
+                                      covar.fun = "matern1", d1 = 1))
     mu.xstarprime <- r.xstarprime.x %*% Rinv %*% y
 
     # because covMatrix has sig2 in it, have an extra one multiplying in???
+    # (I think the paper is wrong... following Rasmussen (2.19) instead)
     tau2.xstarprime <- R.xstarxprime -
-      r.xstarprime.x %*% Rinv %*% t(r.xstarprime.x) #/ sig2current #???
+      r.xstarprime.x %*% Rinv %*% t(r.xstarprime.x)
 
     # MAKE SURE tau2.xstarprime IS SYMMETRIC
     tau2.xstarprime <- ( tau2.xstarprime + t(tau2.xstarprime) ) / 2
@@ -167,12 +173,43 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
 
 ################################################################################
 # # test
-# burn <- 7
-# N <- 5
-# init <- eta0(eta.init = list(l = 5.7, sig2 = 1,
+# burn <- 2000
+# N <- 1000
+# init <- eta0(eta.init = list(l = 0.5, sig2 = 0.1,
 #                              ystar = ytrue(given$xstar) - mean(ytrue(given$x)),
 #                              yprime = 20 / (20 * given$xprime) ),
 #              given = given,  # data, locations, obs, etc.)
 #              N = burn + N, # particles
-#              v1 = 0.01, # step size for l proposal
-#              v2 = 3) # step size for sig2 proposal
+#              v1 = 0.05, # step size for l proposal
+#              v2 = 0.01) # step size for sig2 proposal
+#
+#
+# particles.yprime <- init$chain.yprime[-(1:burn),]
+# plot(x = given$xprime, y = 20 / (20 * given$xprime), pch = 16, cex = 2)
+# for (n in (N-50):N) {
+#   points(x = given$xprime, y = particles.yprime[n,], type = "l", col = n)
+# }
+# tail(particles.yprime)
+#
+# particles.ystar <- init$chain.ystar[-(1:burn),]
+# tail(particles.ystar)
+# plot(x = given$x, y = given$y, pch = 16, cex = 2)
+# for (n in (N-100):N) {
+#   points(x = given$xstar, y = particles.ystar[n,], type = "l", col = "red")
+# }
+#
+# particles.l <- init$chain.l[-(1:burn)]
+# particles.sig2 <- init$chain.sig2[-(1:burn)]
+#
+# plot(particles.l, type = "l")
+# plot(particles.sig2, type = "l")
+#
+# ###
+# par(mfrow = c(2, 1))
+# plot(x = 1:N, y = cumsum(init$accepted.l[-(1:burn)]) / 1:N, pch = 16,
+#      ylab = "rate l")
+# abline(h = 0.2); abline(h = 0.1)
+# plot(x = 1:N, y = cumsum(init$accepted.sig2[-(1:burn)]) / 1:N, pch = 16,
+#      ylab = "rate sig2")
+# abline(h = 0.2); abline(h = 0.1)
+# par(mfrow = c(1, 1))
