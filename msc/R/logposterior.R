@@ -3,15 +3,12 @@
 #' @import mvtnorm
 #' @import stats
 #' @export
-logposterior <- function(l, sig2,
-                          ystar, yprime,
-                          S = NULL, Syy = NULL,
-                          given) {
+logposterior <- function(l,
+                         sig2,
+                         ystar,
+                         yprime,
+                         given) {
 
-  # S: covariance matrix for (ystar, yprime); either provide or
-  #   calculate accordingly
-  # Syy: covariance matrix for y; either provide or
-  #   calculate accordingly
   # given: list(y = y, xstar = xstar, xprime = xprime, x = x)
   # xstar, xprime, x: careful likely have to cbind() themn to make them columns
 
@@ -22,27 +19,20 @@ logposterior <- function(l, sig2,
   x <- cbind(given$x)
 
   ## means and covariances
-  # m <- c(rep(mean(ystar), length(ystar)),
-  #        rep(mean(yprime), length(yprime)))
   m <- rep(0, length(ystar) + length(yprime))
   my <- rep(0, length(y)) #rep(mean(y), length(y))
 
-  if (is.null(S)) {
-    S11 <- covMatrix(X = xstar, sig2 = sig2, covar.fun = r.matern, l = l)
-    S22 <- covMatrix(X = xprime, sig2 = sig2, covar.fun = r.matern2, l = l)
-    S21 <- covMatrix(X = xprime, X2 = xstar,  # CAREFUL SEE PAPER FOR ARG. ORDER
-                     sig2 = sig2, covar.fun = r.matern1, l = l)
-    S <- rbind(cbind(S11, t(S21)),
-               cbind(S21, S22))
+  S11 <- covMatrix(X1 = xstar, X2 = xstar,
+                   sig2 = sig2, l = l, covar.fun = "matern")
+  S22 <- covMatrix(X1 = xprime, X2 = xprime,
+                   sig2 = sig2, l = l, covar.fun = "matern2", d1 = 1, d2 = 1)
+  S21 <- covMatrix(X1 = xprime, X2 = xstar,  # CAREFUL SEE PAPER FOR ARG. ORDER
+                   sig2 = sig2, l = l, covar.fun = "matern1", d1 = 1)
+  S <- rbind(cbind(S11, t(S21)),
+             cbind(S21, S22))
 
-    # S21 <- covMatrix(X = xprime, X2 = xstar,
-    #                  sig2 = sig2, covar.fun = r.matern1, l = l)
-    # all.equal(S12, t(S21))  # should be TRUE...
-  }
-
-  if (is.null(Syy)) {
-    Syy <- covMatrix(X = x, sig2 = sig2, covar.fun = r.matern, l = l)
-  }
+  Syy <- covMatrix(X1 = x, X2 = x,
+                   sig2 = sig2, l = l, covar.fun = "matern")
 
   ## use log scale because numbers are so tiny
   log.d.ystaryprime <- dmvnorm(c(ystar, yprime), mean = m, sigma = S, log = TRUE)
