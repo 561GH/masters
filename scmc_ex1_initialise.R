@@ -112,9 +112,9 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
     R <- covMatrix(X = x, sig2 = sig2current,
                    covar.fun = r.matern, l = lcurrent) +
       diag(nugget, nrow(x))
-    # Linv <- solve( t(chol(R)) )  # recall need transpose to match std chol def
-    # Rinv <- t(Linv) %*% Linv
-    Rinv <- solve(R)
+    Linv <- solve( t(chol(R)) )  # recall need transpose to match std chol def
+    Rinv <- t(Linv) %*% Linv
+    # Rinv <- solve(R)
 
     S11 <- covMatrix(X = xstar, sig2 = sig2current, covar.fun = r.matern, l = lcurrent)
     S22 <- covMatrix(X = xprime, sig2 = sig2current, covar.fun = r.matern2, l = lcurrent)
