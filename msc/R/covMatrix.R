@@ -1,109 +1,127 @@
-################################################################################
 # Covariance matrix for a matrix of inputs #####################################
-################################################################################
 #' @import foreach
 #' @export
-covMatrix <- function(X,
-                      X2 = NULL,
+covMatrix <- function(X1,
+                      X2,
                       sig2,
+                      l,
                       covar.fun,
-                      computing = "sequential",
+                      d1 = 0, d2 = 0,
                       ...) {
   # Will always be of the form sig2 * matrix
-  # X: n by d design matrix; each row is a d-dimensional input
-  # X2: n2 by d design matrix; each row is a d-dimensional input;
+  # X1: n1 by d design matrix; each row is a D-dimensional input
+  # X2: n2 by d design matrix; each row is a D-dimensional input;
   # sig2: constant variance parameter; non-negative real number
-  # covar.fun: choice of covariance function;
-  #   if one of X, X2 is the derivative set, X MUST correspond to the derivative
+  # l: length scale
+  # covar.fun: c("matern", "matern1", "matern2"); assume lambda = 5/2
+  #   if one of X1, X2 is the derivative set, X1 MUST correspond to the derivative
   #   set and X2 to the non-derivative set for r.matern1 (see paper)
-  # computing: whether to compute sequentially or in parallel. Input is one
-  #   of \code{c("sequential", "parallel")}; default is "sequential".
+  # d1: dimension for which the derivative is taken for X1 inputs
+  # d2: dimension for which the derivative is taken for X2 inputs
   # ...: arguments for covar.fun
-  # RETURN: n by n covariance matrix defined on p6;
-  # if X2 is not null, will calculate covar.fun(X, X2)
-  # i.e. get n by n2 covariance matrix (n > 1, n2 > 0; i.e. min 2 by 1)
+  # RETURN: n1 by n2 matrix of covariances
 
   # ERROR HANDLING #############################################################
 
-  if (missing(X)) {stop("Argument X is missing.")}
-  if (!is.matrix(X)) {stop("Argument X must be a matrix.")}
-  if (!is.numeric(X)) {stop("Argument X must contain only numeric values.")}
-  if (nrow(X) < 2) {stop("X must have at least 2 rows (inputs).")}
+  if (!is.matrix(X1) | !is.matrix(X2)) {stop("Argument X must be a matrix.")}
+  if (!is.numeric(X1) | !is.numeric(X2)) {stop("Argument X must contain only numeric values.")}
 
-  if (missing(sig2)) {stop("Constant variance parameter sig2 missing.")}
+  if (nrow(X1) < 1 | nrow(X2) < 1) {stop("X must have at least 1 rows (inputs).")}
+  if (ncol(X2) != ncol(X1)) {
+    stop("X and X2 must have the same number of columns")
+  }
+  if (ncol(X1) != length(l)) {
+    stop("Length of l must be the same as number of columns in X1, X2.")
+  }
 
-  if (missing(covar.fun)) {stop("Missing covariance function.")}
-  if (class(covar.fun) != "function") {stop("covar.fun must be a function.")}
-
-  # PARALLEL COMPUTING #########################################################
-  computing <- match.arg(arg = computing,
-                         choices = c("sequential", "parallel"),
+  covar.fun <- match.arg(arg = covar.fun,
+                         choices = c("matern", "matern1", "matern2"),
                          several.ok = FALSE)
+  if ((covar.fun == "matern1") & d1 == 0) {stop("Specify d1.")}
+  if ((covar.fun == "matern2") & (d1 == 0 | d2 == 0)) {stop("Specify d1, d2.")}
 
-  if (computing == "sequential") { # suppress irritating warning message for seq
-    foreach::registerDoSEQ()
-  } else if (foreach::getDoParWorkers() == 1) {
-    cat("Selected parallel computing, but only 1 execution worker
-        in the currently registered doPar backend.")
-  }
+  # setup ######################################################################
 
-  ##############################################################################
+  d <- ncol(X1)
+  n1 <- nrow(X1)
+  n2 <- nrow(X2)
+  out <- array(1, dim = c(n1, n2))
+  theta <- sqrt(5) / l
 
-  if (!is.null(X2)) {
+  # k: index for dimension
+  # matern #####################################################################
+  if (covar.fun == "matern") {
 
-    if (ncol(X2) != ncol(X)) {
-      stop("X and X2 must have the same number of columns")
+    for (k in 1:d) {
+      diff.k <- outer(X1[, k], X2[, k], "-")
+      td <- theta[k] * abs( diff.k )
+      out <- out * ( 1 + td + td^2 / 3 ) * exp( -td)
     }
-    if (!is.matrix(X2)) {stop("Argument X2 must be a matrix.")}
-    if (!is.numeric(X2)) {stop("Argument X2 must contain only numeric values.")}
-
-    n <- nrow(X)
-    n2 <- nrow(X2)
-
-    ## calculate entries by row
-    ## make i, j globally bound -.-
-    i <- j <- NULL
-    entries <- foreach(i = 1:n, .combine = "cbind", .inorder = FALSE) %:%
-      foreach(j = 1:n2, .combine = "cbind", .inorder = FALSE) %dopar% {
-        do.call(what = covar.fun,
-                args = list(xi = X[i,], xj = X2[j,], ...))
-      }
-
-    out <- matrix(entries, byrow = TRUE, nrow = n, ncol = n2)
-
-  } else {
-
-    n <- nrow(X)  # total number of inputs
-    out <- matrix(NA, nrow = n, ncol = n)
-
-    ## calculate off-diagonal entries column-wise
-    ## (column-wise because of upper.tri() function)
-    ## make i, j globally bound -.-
-    i <- j <- NULL
-    entries <- foreach(j = 2:n, .combine = "cbind", .inorder = FALSE) %:%
-      foreach(i = 1:(j-1), .combine = "cbind", .inorder = FALSE) %dopar% {
-        do.call(what = covar.fun,
-                args = list(xi = X[i,], xj = X[j,], ...))
-      }
-
-    ## fill off-diagonals
-    if (length(entries) > 1) { # or n == 2
-      out[upper.tri(out)] <- entries
-      out <- t(out)
-      out[upper.tri(out)] <- entries
-    } else {
-      out[1, 2] <- out[2, 1] <- entries
-    }
-
-    ## fill diagonals
-    diag(out) <- 1
 
   }
 
-  ## Make sure resulting matrix is symmetric if relevant #######################
+  # matern1 ####################################################################
+  # derivative is in first argument!!!
+  # i.e. lower triangle for eqn (3.8) EX. r11(Xdelta, X)
+  if (covar.fun == "matern1") {
+
+    for (k in 1:d) {
+      diff.k <- outer(X1[, k], X2[, k], "-")
+      td <- theta[k] * abs(diff.k)
+
+      if (k == d1) {
+        out <- out * (- theta[k] / 3 * sign(diff.k) * (td + td^2) * exp(-td))
+      }
+
+      if (k != d1) {
+        out <- out * ( 1 + td + td^2 / 3 ) * exp( -td)
+      }
+    }
+
+  }
+
+  # matern2 ####################################################################
+  if (covar.fun == "matern2") {
+
+    if (d1 == d2) {  # need second derivative
+      for (k in 1:d) {
+        diff.k <- outer(X1[, k], X2[, k], "-")
+        td <- theta[k] * abs( diff.k )
+
+        if (k == d1) {
+          out <- out * (theta[k]^2 * (1 + td - td^2) / 3) * exp(-td)
+        }
+        if (k != d1) {
+          out <- out * ( 1 + td + td^2 / 3 ) * exp( -td)
+        }
+      }
+    }
+
+    if (d1 != d2) {  # don't actually need second derivative
+      for (k in 1:d){
+        diff.k <- outer(X1[, k], X2[, k], "-")
+        td <- theta[k] * abs( diff.k )
+
+        if (k == d1) {
+          out <- out * (- theta[k] / 3 * sign(diff.k) * (td + td^2) * exp(-td))
+        }
+
+        if (k == d2) {  # dg/dxj = -dg/dxi; so different by a negative
+          out <- out * (theta[k] / 3 * sign(diff.k) * (td + td^2) * exp(-td))
+        }
+
+        if (k != d1 & k != d2) {
+          out <- out * ( 1 + td + td^2 / 3 ) * exp( -td)
+        }
+      }
+    }
+
+  }
+
+  ## make sure resulting matrix is symmetric if relevant #######################
   out <- sig2 * out
 
-  if (nrow(out) == ncol(out)) {  # i.e. out is a square matrix
+  if (n1 == n2) {  # i.e. out is a square matrix
     out <- ( out + t(out) ) / 2
   }
 
