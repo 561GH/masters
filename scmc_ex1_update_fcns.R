@@ -14,26 +14,32 @@ update.l <- function(lold,
   lcurrent <- lold
   accepted <- 0
 
-  lnew <- rnorm(1, mean = lold, sd = step.l)  # TODO: check proposal with shirin
+  lnew <- rnorm(1, mean = lold, sd = step.l)
+  # TODO: check proposal with shirin
+  # delta <- rnorm(1, 0, sd = step.l)
+  # lnew <- lold + delta
 
-  if (lnew > 0) {
+  while (lnew < 0) {  # ensures that l isn't negative
+    lnew <- rnorm(1, mean = lold, sd = step.l)
+  }
 
-    logHR <- logposterior(l = lnew,
-                          sig2 = sig2, ystar = ystar, yprime = yprime,
-                          given = given) -
-      logposterior(l = lold,
-                   sig2 = sig2, ystar = ystar, yprime = yprime,
-                   given = given)
+  num <- logposterior(l = lnew,
+                      sig2 = sig2, ystar = ystar, yprime = yprime,
+                      given = given) +
+    log( pnorm(lold, mean = lnew, sd = step.l) )#/ pnorm(0.05, mean = lnew, sd = v1) )
+  den <- logposterior(l = lold,
+                      sig2 = sig2, ystar = ystar, yprime = yprime,
+                      given = given) +
+    log( pnorm(lnew, mean = lold, sd = step.l) )#/ pnorm(0.05, mean = lold, sd = v1) )
+  logHR <- num - den
 
-    #cat("lnew logHR:", logHR)
+  #cat("lnew logHR:", logHR)
 
-    if ( !is.nan(logHR) & !is.na(logHR) ) {  # when have -Inf - Inf get NaN
-      if ( logHR > log(runif(1)) )  {
-        lcurrent <- lnew
-        accepted <- 1
-      }
+  if ( !is.nan(logHR) & !is.na(logHR) ) {  # when have -Inf - Inf get NaN
+    if ( logHR > log(runif(1)) )  {
+      lcurrent <- lnew
+      accepted <- 1
     }
-
   }
 
   return(list(lcurrent = lcurrent,
@@ -51,14 +57,20 @@ update.sig2 <- function(l, sig2old,
   sig2current <- sig2old
   accepted <- 0
 
-  sig2new <- rchisq(1, df = sig2old) #rgamma(1, shape = sig2old/2, scale = 2)
+  sig2new <- rchisq(1, df = sig2old)
+  while (sig2new <= 1.7) {  # arbitrary minimum following shirin
+    sig2new <- rchisq(1, df = sig2old)
+  }
 
-  logHR <- logposterior(l = l, sig2 = sig2new,
-                        ystar = ystar, yprime = yprime,
-                        given = given) -
-    logposterior(l = l, sig2 = sig2old,
-                 ystar = ystar, yprime = yprime,
-                 given = given)
+  num <- logposterior(l = l, sig2 = sig2new,
+                      ystar = ystar, yprime = yprime,
+                      given = given) +
+    log( pchisq(sig2new, df = sig2old) ) #/ pchisq(1.7, df = sig2old) )
+  den <- logposterior(l = l, sig2 = sig2old,
+                      ystar = ystar, yprime = yprime,
+                      given = given) +
+    log( pchisq(sig2old, df = sig2new) ) #/ pchisq(1.7, df = sig2new) )
+  logHR <- num - den
 
   #cat("sig2new logHR:", logHR)
 
@@ -78,8 +90,9 @@ update.sig2 <- function(l, sig2old,
 
 # ==============================================================================
 update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
-                        given = given,
-                        step = step.ystarynew) {
+                               tau,
+                               given = given,
+                               step = step.ystarynew) {
 
   x <- given$x
   xstar <- given$xstar
@@ -94,51 +107,31 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
   # did not need to do metropolis for eta_0 (particle initialisation)
   # because when tau0 = 0 (no constraint), we can sample from the
   # (ystar, ynew) | l, sig2 directly
-  nugget <- 1e-6
-  R <- covMatrix(X1 = x, X2 = x, sig2 = sig2, l = l,
-                 covar.fun = "matern") +
-    diag(nugget, nrow(x))
-  Linv <- solve( t(chol(R)) )  # recall need transpose to match std chol def
-  Rinv <- t(Linv) %*% Linv
+  pred.parameters <- predictiveMeanCov(given = given,
+                                       l = l, sig2 = sig2)
+  tau2.xstarprime <- pred.parameters$cov.xstarprime
+  V <- diag(diag(tau2.xstarprime))
+  Vsqrt.inv <- solve( (sqrt(V)) )
+  corr <- Vsqrt.inv %*% tau2.xstarprime %*% Vsqrt.inv
 
-  S11 <- covMatrix(X1 = xstar, X2 = xstar, sig2 = sig2, l = l,
-                   covar.fun = "matern")
-  S22 <- covMatrix(X1 = xprime, X2 = xprime, sig2 = sig2, l = l,
-                   covar.fun = "matern2", d1 = 1, d2 = 1)
-  S21 <- covMatrix(X1 = xprime, X2 = xstar,  # CAREFUL SEE PAPER FOR ARG. ORDER
-                   sig2 = sig2, l = l,
-                   covar.fun = "matern1", d1 = 1)
-  R.xstarxprime <- rbind(cbind(S11, t(S21)),
-                         cbind(S21, S22)) +
-    diag(nugget, nrow(xstar) + nrow(xprime))
 
-  # CAREFUL SEE PAPER FOR ARG. ORDER
-  r.xstarprime.x <- rbind(covMatrix(X1 = xstar, X2 = x,
-                                    sig2 = sig2, l = l,
-                                    covar.fun = "matern"),
-                          covMatrix(X1 = xprime, X2 = x,
-                                    sig2 = sig2, l = l,
-                                    covar.fun = "matern1", d1 = 1))
-  mu.xstarprime <- r.xstarprime.x %*% Rinv %*% y
-
-  # because covMatrix has sig2 in it, have an extra one multiplying in???
-  tau2.xstarprime <- R.xstarxprime -
-    r.xstarprime.x %*% Rinv %*% t(r.xstarprime.x) #/ sig2current #???
-
-  # MAKE SURE tau2.xstarprime IS SYMMETRIC
-  tau2.xstarprime <- ( tau2.xstarprime + t(tau2.xstarprime) ) / 2
-
-  # MAKE SURE tau2.xstarprime IS POSTIVE SEMI-DEFINITE
-  # eigen(tau2.xstarprime)$values  # changed nugget to 10e-6 from -8
-
-  ystaryprimenew <- rmvnorm(1, mean = mu.xstarprime, sigma = tau2.xstarprime)
+  # we have a symmetric proposal distribution
+  # i.e. doesn't depend on previous ystar yprime value
+  ystaryprimenew <- rmvnorm(1, mean = c(ystarold, yprimeold),
+                            sigma =  step.ystaryprime * corr)
   ystarnew <- ystaryprimenew[,1:nrow(xstar)]
   yprimenew <- ystaryprimenew[,-(1:nrow(xstar))]
 
-  logHR <- logposterior(l = l, sig2 = sig2, ystar = ystarnew, yprime = yprimenew,
-                        given = given) -
-    logposterior(l = l, sig2 = sig2, ystar = ystarold, yprimeold,
-                 given = given)
+  # constraint part is from likelihood
+  num <- logposterior(l = l, sig2 = sig2, ystar = ystarnew, yprime = yprimenew,
+                      given = given) +
+    sum( log( pnorm(yprimenew * tau) ) )
+
+  den <- logposterior(l = l, sig2 = sig2, ystar = ystarold, yprime = yprimeold,
+                      given = given) +
+    sum( log( pnorm(yprimeold * tau) ) )
+
+  logHR <- num - den
 
   #cat("ystaryprime logHR:", logHR)
 
@@ -152,7 +145,12 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
 
   return(list(ystarcurrent = ystarcurrent,
               yprimecurrent = yprimecurrent,
-              accepted = accepted))
+              accepted = accepted,
+              prob = exp( logHR ),# qqq
+              ystar2old = ystarold[2],
+              ystar2new = ystarnew[2],
+              yprime2old = yprimeold[2],
+              yprime2new = yprimenew[2]))
 
 }
 
@@ -169,14 +167,21 @@ combine.particles <- function(out1, out2) {
 }
 
 update.all <- function(accepted = NULL,
-                       steps = NULL,
+                       steps = list(step.l = 0.07,
+                                    step.sig2 = 0.01,
+                                    step.ystaryprime = 0.01),
                        particles.l.old,
                        particles.sig2.old,
                        particles.ystar.old,
-                       particles.yprime.old) {
+                       particles.yprime.old,
+                       tau) {
 
   # TODO: acceptance rates what
   accepted.l <- accepted.sig2 <- accepted.ystaryprime <- 0
+
+  step.l <- steps$step.l
+  step.sig2 <- steps$step.sig2
+  step.ystaryprime <- steps$step.ystaryprime
 
   foreach(i = 1:N, .combine = "combine.particles") %dopar% {
 
@@ -216,11 +221,17 @@ update.all <- function(accepted = NULL,
 
     ystaryprimeupdate <- update.ystaryprime(l = lcurrent, sig2 = sig2current,
                               ystar = ystarold, yprime = yprimeold,
-                              given = given, step = step.ystaryprime)
+                              given = given, step = step.ystaryprime,
+                              tau = tau)
 
     ystarcurrent <- ystaryprimeupdate$ystarcurrent
     yprimecurrent <- ystaryprimeupdate$yprimecurrent
     accepted.ystaryprime <- accepted.ystaryprime + ystaryprimeupdate$accepted
+    prob <- ystaryprimeupdate$prob  # qqq
+    ystar2old <- ystaryprimeupdate$ystar2old
+    ystar2new <- ystaryprimeupdate$ystar2new
+    yprime2old <- ystaryprimeupdate$yprime2old
+    yprime2new <- ystaryprimeupdate$yprime2new
 
     ### UPDATE chains ##########################################################
 
@@ -231,7 +242,12 @@ update.all <- function(accepted = NULL,
          acceptances =
            cbind(accepted.l = accepted.l,
                  accepted.sig2 = accepted.sig2,
-                 accepted.ystaryprime = accepted.ystaryprime))
+                 accepted.ystaryprime = accepted.ystaryprime,
+                 prob.ystaryprime = prob, # qqq
+                 ystar2old = ystar2old,
+                 ystar2new = ystar2new,
+                 yprime2old = yprime2old,
+                 yprime2new = yprime2new))
 
   }
 
