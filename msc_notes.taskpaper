@@ -116,8 +116,19 @@ meetings:
 		yes the derivative GP covariance matrix is symmetric (says michael and derek); i.e. eqn (3.8) is symmetric BUT our covMatrix function is really just for calculating the lower triangle!
 			shirin's matcorder is missing a negative sign
 			the appendix is wrong for the second derivative of the matern (no divided by 2, no sign term)
-		- fix matern2 i.e. what are you even calculating??
-		- change all calls to covMatrix() @due
+		- fix matern2 i.e. what are you even calculating?? @done
+		- change all calls to covMatrix() @due @done
+		- finish fixing ystar yprime update
+		- sampling l
+				delta <- rnorm(1, 0, ql)
+				newl <- l[i] + delta
+				if (newl > 0) 
+				BUT 
+				ratio <- (log(pnorm(l[i], 0, 0.01)) + lpnum) - (log(pnorm(newl, 0, 0.01)) + lpden)
+		- sampling ystar yprime
+				g0 = sum(log(pnorm(new[(n+1):len]/nu)))
+				g1 = sum(log(pnorm(z[i,][(n + 1):len] / nu)))
+				ratio = lmvnlik(c(new),mean,covmat) + g0 - lmvnlik(z[i,], mean, covmat) - g1
 questions:
 	- why only allow l > 0.05 proposals?
 		probably for numerical stability reasons; also length scale close to zero is stupid
