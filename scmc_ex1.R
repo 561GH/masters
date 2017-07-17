@@ -14,7 +14,7 @@ M <- 20  # total time
 taus <- 1 / c(Inf, ( seq(2, .1, length.out = M-1) )^5)
 
 N <- 100  # particles desired for SCMC
-burn <- 300  # burn in for initialising particles
+burn <- 200  # burn in for initialising particles
 
 ################################################################################
 # 1. initialise (ith row = ith particle) #######################################
@@ -25,14 +25,13 @@ particles.sig2 <- matrix(NA, nrow = N, ncol = M)
 particles.ystar <- array(NA, dim = c(N, M, nrow(given$xstar)))
 particles.yprime <- array(NA, dim = c(N, M, nrow(given$xprime)))
 
-init <- eta0(eta.init = list(l = 0.5, sig2 = 0.1,
+init <- eta0(eta.init = list(l = 0.5, sig2 = 5,
                              ystar = ytrue(given$xstar) - mean(ytrue(given$x)) +
                                rnorm(nrow(given$xstar), sd = 0.1),  # so init is not so good
                              yprime = 20 / (20 * given$xprime) ),
              given = given,  # data, locations, obs, etc.)
              N = burn + N, # particles
-             v1 = 0.05, # step size for l proposal
-             v2 = 0.01) # step size for sig2 proposal
+             v1 = 0.07) # step size for l proposal
 
 particles.l[,1] <- (init$chain.l)[-(1:burn)]
 particles.sig2[,1] <- (init$chain.sig2)[-(1:burn)]
@@ -54,9 +53,9 @@ W[,1] <- 1/N
 ################################################################################
 # 3. looping through t = 1, ..., M-1 ##########################################
 ################################################################################
-step.l <- 0.05  # step size for l
+step.l <- 0.07  # step size for l
 step.sig2 <- 0.01  # step size for sig2
-step.ystaryprime <- 1  # tune this
+step.ystaryprime <- 0.01  # tune this
 
 # TODO: should let step size vary to provide decent acceptance rates (during burn in?)
 
@@ -99,6 +98,7 @@ for (t in 2:M) {
   }
 
   w.tildes <- apply(particles.yprime[,t,], MARGIN = 1, FUN = weight.particle)
+  w.tildes[!is.finite(w.tildes)] <- 0
   W[,t] <- W[,t-1] * w.tildes
 
   W[,t] <- W[,t] / sum(W[,t])  # normalise weights
@@ -133,7 +133,8 @@ for (t in 2:M) {
   particles.new <- update.all(particles.l.old = particles.l[,t-1],
                               particles.sig2.old = particles.sig2[,t-1],
                               particles.ystar.old = particles.ystar[,t-1,],
-                              particles.yprime.old = particles.yprime[,t-1,])
+                              particles.yprime.old = particles.yprime[,t-1,],
+                              tau = taus[t])
 
   acceptances <- particles.new$acceptances  # N by 3 matrix of acceptances
 
