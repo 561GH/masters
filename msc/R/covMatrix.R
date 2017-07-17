@@ -106,7 +106,7 @@ covMatrix <- function(X1,
           out <- out * (- theta[k] / 3 * sign(diff.k) * (td + td^2) * exp(-td))
         }
 
-        if (k == d2) {  # dg/dxj = -dg/dxi; so different by a negative
+        if (k == d2) {  # dg/dxj = -dg/dxi; so different by a negative; might be wrong be careful
           out <- out * (theta[k] / 3 * sign(diff.k) * (td + td^2) * exp(-td))
         }
 
