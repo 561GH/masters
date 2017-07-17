@@ -3,6 +3,7 @@
 export(covMatrix)
 export(dmvn)
 export(logposterior)
+export(predictiveMeanCov)
 export(rmvn)
 import(foreach)
 import(mvtnorm)
