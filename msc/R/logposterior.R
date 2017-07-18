@@ -19,7 +19,6 @@ logposterior <- function(l,
   x <- cbind(given$x)
 
   ## means and covariances
-  my <- rep(0, length(y)) #rep(mean(y), length(y))
 
   nugget <- 1e-6
   R <- covMatrix(X1 = x, X2 = x, sig2 = sig2, l = l,
@@ -57,10 +56,14 @@ logposterior <- function(l,
   tau2.xstarprime <- ( tau2.xstarprime + t(tau2.xstarprime) ) / 2
 
   ## use log scale because numbers are so tiny
-  log.d.ystaryprime <- dmvnorm(c(ystar, yprime),
-                               mean = mu.xstarprime, sigma = tau2.xstarprime,
+  # log.d.ystaryprime <- dmvnorm(c(ystar, yprime),
+  #                              mean = mu.xstarprime, sigma = tau2.xstarprime,
+  #                              log = TRUE)
+  log.d.ystaryprime <- dmvn(c(ystar, yprime),
+                               m = mu.xstarprime, S = tau2.xstarprime,
                                log = TRUE)
-  log.d.y <- dmvnorm(as.numeric(y), mean = my, sigma = R, log = TRUE)
+  log.d.y <- dmvnorm(as.numeric(y),
+                     mean = rep(0, length(y)), sigma = R, log = TRUE)
 
   # cat("log.d.ystaryprime:", log.d.ystaryprime, "\n")
   # cat("log.d.y:", log.d.y, "\n")

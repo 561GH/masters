@@ -20,8 +20,8 @@ given <- list(x = cbind(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1)),
 
 eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
                  given,  # data, locations, obs, etc.
-                 N = 100, # iterations
-                 v1 = 0.01) {  # step size for l proposal
+                 N, # iterations
+                 v1) {  # step size for l proposal
 
   x <- given$x
   xstar <- given$xstar
@@ -83,7 +83,7 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
     }
 
     lcurrent <- chain.l[i]
-    cat("\t \t \t -> acceptance rate for l:", sum(accepted.l) / i, "\n")
+    #cat("\t \t \t -> acceptance rate for l:", sum(accepted.l) / i, "\n")
 
     ## UPDATE sig2 ###############################################################
     sig2new <- rchisq(1, df = sig2old)
@@ -113,7 +113,7 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
     }
 
     sig2current <- chain.sig2[i]
-    cat("\t \t \t -> acceptance rate for sig2:", sum(accepted.sig2) / i, "\n")
+    #cat("\t \t \t -> acceptance rate for sig2:", sum(accepted.sig2) / i, "\n")
 
     ## UPDATE ystaryprime ########################################################
     pred.parameters <- predictiveMeanCov(given = given,

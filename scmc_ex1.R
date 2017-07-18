@@ -2,10 +2,11 @@
 ## response y must be scalar
 
 # run: scmc_ex1_initialise
+# + scmc_ex_1_update_fcns
 # + build package
-set.seed(761)
+# set.seed(761)
 
-M <- 20  # total time
+M <- 10  # total time
 # tauM <- 10e-6
 # taus <- seq(0, tauM, length.out = M+1)  # TODO: sequence of taus???
 # taus <- taus[2:length(taus)]
@@ -14,7 +15,11 @@ M <- 20  # total time
 taus <- 1 / c(Inf, ( seq(2, .1, length.out = M-1) )^5)
 
 N <- 100  # particles desired for SCMC
-burn <- 200  # burn in for initialising particles
+burn <- 2000  # burn in for initialising particles
+
+# qqq
+acceptances <- vector("list", M)
+debug <- vector("list", M)
 
 ################################################################################
 # 1. initialise (ith row = ith particle) #######################################
@@ -25,7 +30,7 @@ particles.sig2 <- matrix(NA, nrow = N, ncol = M)
 particles.ystar <- array(NA, dim = c(N, M, nrow(given$xstar)))
 particles.yprime <- array(NA, dim = c(N, M, nrow(given$xprime)))
 
-init <- eta0(eta.init = list(l = 0.5, sig2 = 5,
+init <- eta0(eta.init = list(l = 0.5, sig2 = 10,
                              ystar = ytrue(given$xstar) - mean(ytrue(given$x)) +
                                rnorm(nrow(given$xstar), sd = 0.1),  # so init is not so good
                              yprime = 20 / (20 * given$xprime) ),
@@ -53,9 +58,14 @@ W[,1] <- 1/N
 ################################################################################
 # 3. looping through t = 1, ..., M-1 ##########################################
 ################################################################################
-step.l <- 0.07  # step size for l
-step.sig2 <- 0.01  # step size for sig2
-step.ystaryprime <- 0.01  # tune this
+# step.l <- 0.07  # step size for l
+# step.sig2 <- 0.01  # step size for sig2
+# step.ystaryprime <- 0.01  # tune this
+step.sizes <- rep(NA, M)  # qqq
+step.sizes[[2]] <- 0.2
+
+step.sizes.l <- rep(NA, M)  # qqq
+step.sizes.l[[2]] <- 0.07
 
 # TODO: should let step size vary to provide decent acceptance rates (during burn in?)
 
@@ -107,6 +117,8 @@ for (t in 2:M) {
   ### effective sample size
   ESSt <- 1 / sum( (W[,t])^2 )
 
+  ESSt <- 0  # qqq always resample
+
   if (ESSt <= N/2) {
 
     resample <- sample(1:N, replace = TRUE, prob = W[,t])
@@ -130,13 +142,34 @@ for (t in 2:M) {
   # TODO: fill this in after update.all done (acceptance rates ??? ignore for now)
   # TODO: adaptively chance step sizes
 
+  if (t > 2) {
+    if ( (acceptances[[t-1]])[N,3] / N < 0.25 |
+         (acceptances[[t-1]])[N,3] / N < 0.4) {
+      step.sizes[t] <- step.sizes[t-1] * (acceptances[[t-1]])[N,3] / (0.25 * N)
+    } else {
+      step.sizes[t] <- step.sizes[t-1]
+    }
+  }
+
+  # if (t > 2) {
+  #   if ( (acceptances[[t-1]])[N,1] / N < 0.25 |
+  #        (acceptances[[t-1]])[N,1] / N < 0.4) {
+  #     step.sizes.l[t] <- step.sizes.l[t-1] * (acceptances[[t-1]])[N,1] / (0.25 * N)
+  #   } else {
+  #     step.sizes.l[t] <- step.sizes.l[t-1]
+  #   }
+  # }
+
   particles.new <- update.all(particles.l.old = particles.l[,t-1],
                               particles.sig2.old = particles.sig2[,t-1],
                               particles.ystar.old = particles.ystar[,t-1,],
                               particles.yprime.old = particles.yprime[,t-1,],
-                              tau = taus[t])
+                              tau = taus[t],
+                              steps = list(step.l = 0.1, #step.sizes.l[t],
+                                           step.ystaryprime = step.sizes[t]))
 
-  acceptances <- particles.new$acceptances  # N by 3 matrix of acceptances
+  acceptances[[t]] <- particles.new$acceptances[,(1:3)]  # N by 3 matrix of acceptances
+  debug[[t]] <- particles.new$acceptances[,-(1:3)]  # qqq
 
   particles.l[,t] <- particles.new$l
   particles.sig2[,t] <- particles.new$sig2
