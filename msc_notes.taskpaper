@@ -130,6 +130,12 @@ meetings:
 				g0 = sum(log(pnorm(new[(n+1):len]/nu)))
 				g1 = sum(log(pnorm(z[i,][(n + 1):len] / nu)))
 				ratio = lmvnlik(c(new),mean,covmat) + g0 - lmvnlik(z[i,], mean, covmat) - g1
+	170718:
+		so it turns out to make the variability go down within 10 time steps,
+			always resample according to the weights no matter what
+			don't multiply new weights by the old ones
+			never actually propose anything new
+			
 questions:
 	- why only allow l > 0.05 proposals?
 		probably for numerical stability reasons; also length scale close to zero is stupid

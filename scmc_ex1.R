@@ -13,7 +13,6 @@ M <- 10  # total time
 
 # shirin's tau sequence i.e. reciprocal of her nuseq
 taus <- 1 / c(Inf, ( seq(2, .1, length.out = M-1) )^5)
-nuseq <- c(Inf, (seq(2, .1, length.out = M-1))^5)
 
 N <- 100  # particles desired for SCMC
 burn <- 200  # burn in for initialising particles
@@ -42,21 +41,6 @@ particles.l[,1] <- (init$chain.l)[-(1:burn)]
 particles.sig2[,1] <- (init$chain.sig2)[-(1:burn)]
 particles.ystar[,1,] <- (init$chain.ystar)[-(1:burn),]
 particles.yprime[,1,] <- (init$chain.yprime)[-(1:burn),]
-
-
-# starting with sg's code
-# x <- given$x
-# newx <- given$xstar
-# y_obs <- given$y
-# xd <- given$xprime
-#
-# sample0 <- MCMC_unconstrained(x, y_obs, xd, newx, burn = 200, N = 200 + N,
-#                              initial_values = list(l = .5, sig2 = 10))  # qqq
-#
-# particles.l[,1] <- sample0$l
-# particles.sig2[,1] <- sample0$sig2
-# particles.ystar[,1,] <- sample0$y
-# particles.yprime[,1,] <- sample0$yd
 
 # cat("Acceptance rates from initialisation: \n",
 #     "\t l: ", sum(init$accepted.l[-(1:burn)]) / N, "\n",
@@ -111,45 +95,28 @@ for (t in 2:M) {
   #   cat("num:", num, "; den:", den, "\n")
   # }
 
-  # w.tildes <- c()
-  # nus <- 1 / taus
-  # for (i in 1:N) {
-  #   num <- sum(log(pnorm(particles.yprime[i,t,] / nus[t] )))
-  #   den <- sum(log(pnorm(particles.yprime[i,t,] / nus[t-1] )))
-  #   w.tildes[i] <- num - den
-  # }
+  weight.particle <- function(x) {
+    # x = derivative values for all inputs for a particle
+    # i.e. vector of y'(x_d) for all d
+    # print(length(x))  # make sure this is the number of derivative inputs
 
-  # weight.particle <- function(x) {
-  #   # x = derivative values for all inputs for a particle
-  #   # i.e. vector of y'(x_d) for all d
-  #   # print(length(x))  # make sure this is the number of derivative inputs
-  #
-  #   num <- sum( log( pnorm( x * taus[t] )))
-  #   den <- sum( log( pnorm( x * taus[t-1] )))
-  #   #return( exp(num - den) )
-  #   return( (num - den) )
-  # }
-  #
-  # w.tildes <- apply(particles.yprime[,t,], MARGIN = 1, FUN = weight.particle)
-  # #w.tildes[!is.finite(w.tildes)] <- 0
-  # #W[,t] <- W[,t-1] * w.tildes
-  # W[,t] <- exp(w.tildes) / sum(exp(w.tildes))
-  # W[,t] <- W[,t] / sum(W[,t])  # normalise weights
-
-  w <- c()
-  for (i in 1:N) {
-    num <- sum(log(pnorm(particles.yprime[i,t,]/nuseq[t])))
-    den <- sum(log(pnorm(particles.yprime[i,t,]/nuseq[t-1])))
-    w[i] <- num - den
+    num <- sum( log( pnorm( x * taus[t] )))
+    den <- sum( log( pnorm( x * taus[t-1] )))
+    return( exp(num - den) )
+    #return( (num - den) )
   }
-  w <- exp(w) / sum(exp(w))
-  W[,t] <- w
+
+  w.tildes <- apply(particles.yprime[,t,], MARGIN = 1, FUN = weight.particle)
+  #w.tildes[!is.finite(w.tildes)] <- 0
+  #W[,t] <- W[,t-1] * w.tildes  # shirin's code doesn't do this
+
+  W[,t] <- exp(w.tildes) / sum(exp(w.tildes))
+  W[,t] <- W[,t] / sum(W[,t])  # normalise weights
 
   ## RESAMPLING ================================================================
   ### effective sample size
   #ESSt <- 1 / sum( (W[,t])^2 )
-
-  resample <- sample(1:N, N, replace = TRUE, prob = w)
+  resample <- sample(1:N, N, replace = TRUE, prob = W[,t])
 
   particles.l[,t] <- particles.l[resample,t]
   particles.sig2[,t] <- particles.sig2[resample,t]
@@ -197,14 +164,9 @@ for (t in 2:M) {
   #   }
   # }
 
-  # particles.new <- update.all(particles.l.old = particles.l[,t-1],
-  #                             particles.sig2.old = particles.sig2[,t-1],
-  #                             particles.ystar.old = particles.ystar[,t-1,],
-  #                             particles.yprime.old = particles.yprime[,t-1,],
-  #                             tau = taus[t],
-  #                             steps = list(step.l = sd(particles.l[,t-1]), #step.sizes.l[t],
-  #                                          step.ystaryprime = 0.01))#step.sizes[t]))
-
+  # be careful!! even though it's the old particles,
+  # use the ones stored in position "t" because those are the ones
+  # that have been resampled!
   particles.new <- update.all(particles.l.old = particles.l[,t],
                               particles.sig2.old = particles.sig2[,t],
                               particles.ystar.old = particles.ystar[,t,],
