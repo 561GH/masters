@@ -13,9 +13,10 @@ M <- 10  # total time
 
 # shirin's tau sequence i.e. reciprocal of her nuseq
 taus <- 1 / c(Inf, ( seq(2, .1, length.out = M-1) )^5)
+nuseq <- c(Inf, (seq(2, .1, length.out = M-1))^5)
 
 N <- 100  # particles desired for SCMC
-burn <- 2000  # burn in for initialising particles
+burn <- 200  # burn in for initialising particles
 
 # qqq
 acceptances <- vector("list", M)
@@ -31,8 +32,7 @@ particles.ystar <- array(NA, dim = c(N, M, nrow(given$xstar)))
 particles.yprime <- array(NA, dim = c(N, M, nrow(given$xprime)))
 
 init <- eta0(eta.init = list(l = 0.5, sig2 = 10,
-                             ystar = ytrue(given$xstar) - mean(ytrue(given$x)) +
-                               rnorm(nrow(given$xstar), sd = 0.1),  # so init is not so good
+                             ystar = ytrue(given$xstar) - mean(ytrue(given$x)),
                              yprime = 20 / (20 * given$xprime) ),
              given = given,  # data, locations, obs, etc.)
              N = burn + N, # particles
@@ -43,9 +43,24 @@ particles.sig2[,1] <- (init$chain.sig2)[-(1:burn)]
 particles.ystar[,1,] <- (init$chain.ystar)[-(1:burn),]
 particles.yprime[,1,] <- (init$chain.yprime)[-(1:burn),]
 
-cat("Acceptance rates from initialisation: \n",
-    "\t l: ", sum(init$accepted.l[-(1:burn)]) / N, "\n",
-    "\t sig2: ", sum(init$accepted.sig2[-(1:burn)]) / N, "\n \n")
+
+# starting with sg's code
+# x <- given$x
+# newx <- given$xstar
+# y_obs <- given$y
+# xd <- given$xprime
+#
+# sample0 <- MCMC_unconstrained(x, y_obs, xd, newx, burn = 200, N = 200 + N,
+#                              initial_values = list(l = .5, sig2 = 10))  # qqq
+#
+# particles.l[,1] <- sample0$l
+# particles.sig2[,1] <- sample0$sig2
+# particles.ystar[,1,] <- sample0$y
+# particles.yprime[,1,] <- sample0$yd
+
+# cat("Acceptance rates from initialisation: \n",
+#     "\t l: ", sum(init$accepted.l[-(1:burn)]) / N, "\n",
+#     "\t sig2: ", sum(init$accepted.sig2[-(1:burn)]) / N, "\n \n")
 
 ################################################################################
 # 2. weights at time t = 1 #####################################################
@@ -96,41 +111,63 @@ for (t in 2:M) {
   #   cat("num:", num, "; den:", den, "\n")
   # }
 
-  weight.particle <- function(x) {
-    # x = derivative values for all inputs for a particle
-    # i.e. vector of y'(x_d) for all d
-    # print(length(x))  # make sure this is the number of derivative inputs
+  # w.tildes <- c()
+  # nus <- 1 / taus
+  # for (i in 1:N) {
+  #   num <- sum(log(pnorm(particles.yprime[i,t,] / nus[t] )))
+  #   den <- sum(log(pnorm(particles.yprime[i,t,] / nus[t-1] )))
+  #   w.tildes[i] <- num - den
+  # }
 
-    num <- sum( log( pnorm( x * taus[t] )))
-    den <- sum( log( pnorm( x * taus[t-1] )))
-    return( exp(num - den) )
-    #return( (num - den) )
+  # weight.particle <- function(x) {
+  #   # x = derivative values for all inputs for a particle
+  #   # i.e. vector of y'(x_d) for all d
+  #   # print(length(x))  # make sure this is the number of derivative inputs
+  #
+  #   num <- sum( log( pnorm( x * taus[t] )))
+  #   den <- sum( log( pnorm( x * taus[t-1] )))
+  #   #return( exp(num - den) )
+  #   return( (num - den) )
+  # }
+  #
+  # w.tildes <- apply(particles.yprime[,t,], MARGIN = 1, FUN = weight.particle)
+  # #w.tildes[!is.finite(w.tildes)] <- 0
+  # #W[,t] <- W[,t-1] * w.tildes
+  # W[,t] <- exp(w.tildes) / sum(exp(w.tildes))
+  # W[,t] <- W[,t] / sum(W[,t])  # normalise weights
+
+  w <- c()
+  for (i in 1:N) {
+    num <- sum(log(pnorm(particles.yprime[i,t,]/nuseq[t])))
+    den <- sum(log(pnorm(particles.yprime[i,t,]/nuseq[t-1])))
+    w[i] <- num - den
   }
-
-  w.tildes <- apply(particles.yprime[,t,], MARGIN = 1, FUN = weight.particle)
-  w.tildes[!is.finite(w.tildes)] <- 0
-  W[,t] <- W[,t-1] * w.tildes
-
-  W[,t] <- W[,t] / sum(W[,t])  # normalise weights
+  w <- exp(w) / sum(exp(w))
+  W[,t] <- w
 
   ## RESAMPLING ================================================================
   ### effective sample size
-  ESSt <- 1 / sum( (W[,t])^2 )
+  #ESSt <- 1 / sum( (W[,t])^2 )
 
-  ESSt <- 0  # qqq always resample
+  resample <- sample(1:N, N, replace = TRUE, prob = w)
 
-  if (ESSt <= N/2) {
+  particles.l[,t] <- particles.l[resample,t]
+  particles.sig2[,t] <- particles.sig2[resample,t]
+  particles.ystar[,t,] <- particles.ystar[resample,t,]
+  particles.yprime[,t,] <- particles.yprime[resample,t,]
 
-    resample <- sample(1:N, replace = TRUE, prob = W[,t])
-
-    particles.l[,t] <- particles.l[resample,t]
-    particles.sig2[,t] <- particles.sig2[resample,t]
-    particles.ystar[,t,] <- particles.ystar[resample,t,]
-    particles.yprime[,t,] <- particles.yprime[resample,t,]
-
-    W[,t] <- 1/N
-
-  }
+  # if (ESSt <= N/2) {
+  #
+  #   resample <- sample(1:N, replace = TRUE, prob = W[,t])
+  #
+  #   particles.l[,t] <- particles.l[resample,t]
+  #   particles.sig2[,t] <- particles.sig2[resample,t]
+  #   particles.ystar[,t,] <- particles.ystar[resample,t,]
+  #   particles.yprime[,t,] <- particles.yprime[resample,t,]
+  #
+  #   #W[,t] <- 1/N  # qqq
+  #
+  # }
 
   ## SAMPLING ==================================================================
   ## the t-th time step particles (not t+1 as the alg says)
@@ -142,14 +179,14 @@ for (t in 2:M) {
   # TODO: fill this in after update.all done (acceptance rates ??? ignore for now)
   # TODO: adaptively chance step sizes
 
-  if (t > 2) {
-    if ( (acceptances[[t-1]])[N,3] / N < 0.25 |
-         (acceptances[[t-1]])[N,3] / N < 0.4) {
-      step.sizes[t] <- step.sizes[t-1] * (acceptances[[t-1]])[N,3] / (0.25 * N)
-    } else {
-      step.sizes[t] <- step.sizes[t-1]
-    }
-  }
+  # if (t > 2) {
+  #   if ( (acceptances[[t-1]])[N,3] / N < 0.25 |
+  #        (acceptances[[t-1]])[N,3] / N < 0.4) {
+  #     step.sizes[t] <- step.sizes[t-1] * (acceptances[[t-1]])[N,3] / (0.25 * N)
+  #   } else {
+  #     step.sizes[t] <- step.sizes[t-1]
+  #   }
+  # }
 
   # if (t > 2) {
   #   if ( (acceptances[[t-1]])[N,1] / N < 0.25 |
@@ -160,13 +197,21 @@ for (t in 2:M) {
   #   }
   # }
 
-  particles.new <- update.all(particles.l.old = particles.l[,t-1],
-                              particles.sig2.old = particles.sig2[,t-1],
-                              particles.ystar.old = particles.ystar[,t-1,],
-                              particles.yprime.old = particles.yprime[,t-1,],
+  # particles.new <- update.all(particles.l.old = particles.l[,t-1],
+  #                             particles.sig2.old = particles.sig2[,t-1],
+  #                             particles.ystar.old = particles.ystar[,t-1,],
+  #                             particles.yprime.old = particles.yprime[,t-1,],
+  #                             tau = taus[t],
+  #                             steps = list(step.l = sd(particles.l[,t-1]), #step.sizes.l[t],
+  #                                          step.ystaryprime = 0.01))#step.sizes[t]))
+
+  particles.new <- update.all(particles.l.old = particles.l[,t],
+                              particles.sig2.old = particles.sig2[,t],
+                              particles.ystar.old = particles.ystar[,t,],
+                              particles.yprime.old = particles.yprime[,t,],
                               tau = taus[t],
-                              steps = list(step.l = 0.1, #step.sizes.l[t],
-                                           step.ystaryprime = step.sizes[t]))
+                              steps = list(step.l = sd(particles.l[,t]), #step.sizes.l[t],
+                                           step.ystaryprime = 0.01))#step.sizes[t]))
 
   acceptances[[t]] <- particles.new$acceptances[,(1:3)]  # N by 3 matrix of acceptances
   debug[[t]] <- particles.new$acceptances[,-(1:3)]  # qqq
@@ -177,3 +222,4 @@ for (t in 2:M) {
   particles.yprime[,t,] <- particles.new$yprime
 
 }
+

@@ -112,9 +112,26 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
   m <- pred.parameters$mu.xstarprime
   tau2.xstarprime <- pred.parameters$cov.xstarprime +
     diag(rep(nugget, nrow(xstar) + nrow(xprime)))
-  V <- diag(diag(tau2.xstarprime))
-  Vsqrt.inv <- solve( (sqrt(V)) )
-  corr <- Vsqrt.inv %*% tau2.xstarprime %*% Vsqrt.inv
+
+  # trying to make an actual correlation matrix
+  # V <- diag(diag(tau2.xstarprime))
+  # Vsqrt.inv <- solve( (sqrt(V)) )
+  # corr <- Vsqrt.inv %*% tau2.xstarprime %*% Vsqrt.inv
+
+  # wtf
+  if (tau2.xstarprime[1,1] <= 1e-4) {
+    ystarnew <- ystarold
+    yprimenew <- yprimeold
+
+    return(list(ystarcurrent = ystarcurrent,
+                yprimecurrent = yprimecurrent,
+                accepted = NA,
+                prob = NA,
+                ystar2old = ystarold[2],
+                ystar2new = ystarnew[2],
+                yprime2old = yprimeold[2],
+                yprime2new = yprimenew[2]))
+  }
 
   # we have a symmetric proposal distribution
   # i.e. doesn't depend on previous ystar yprime value
@@ -126,16 +143,6 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
   yprimenew <- ystaryprimenew[,-(1:nrow(xstar))]
 
   # constraint part is from likelihood
-
-  ## dmvnorm gives weird results
-  # num <- dmvnorm(c(ystarnew, yprimenew),
-  #                mean = m, sigma = pred.parameters$cov.xstarprime, log = TRUE) +
-  #   sum( log( pnorm(yprimenew * tau) ) )
-  #
-  # den <- dmvnorm(c(ystarold, yprimeold),
-  #                mean = m, sigma = pred.parameters$cov.xstarprime, log = TRUE) +
-  #   sum( log( pnorm(yprimeold * tau) ) )
-
   num <- dmvn(c(ystarnew, yprimenew),
                  m = m, S = tau2.xstarprime, log = TRUE) +
     sum( log( pnorm(yprimenew * tau) ) )

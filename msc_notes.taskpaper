@@ -125,6 +125,7 @@ meetings:
 				if (newl > 0) 
 				BUT 
 				ratio <- (log(pnorm(l[i], 0, 0.01)) + lpnum) - (log(pnorm(newl, 0, 0.01)) + lpden)
+			- why is the pnorm sd 0.01 and not ql?
 		- sampling ystar yprime
 				g0 = sum(log(pnorm(new[(n+1):len]/nu)))
 				g1 = sum(log(pnorm(z[i,][(n + 1):len] / nu)))
