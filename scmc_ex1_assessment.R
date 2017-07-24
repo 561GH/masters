@@ -5,69 +5,94 @@
 # ## run stuff here
 # parallel::stopCluster(cl)
 
+library(ggplot2); library(dplyr)
 plotSamplePaths <- function(given,
-                            particles.l,
                             particles.ystar) {
-  L = dim(particles.l)[2]
-  N = dim(particles.l)[1]
-  dimnames(particles.ystar) = list(sample = 1:N, step = 1:L, point = given$xstar)
+  M <- dim(particles.ystar)[2]
+  N <- dim(particles.ystar)[1]
+  dimnames(particles.ystar) <- list(sample = 1:N, step = 1:M, point = given$xstar)
   df0 <- as.data.frame.table(particles.ystar)
-  names(df0)[4] = "y"
-  select_step = floor(seq(1, L, length = 5))
-  df0 = df0 %>% filter(step %in% select_step) %>% group_by(point,
-                                                           step) %>% summarise(mean = mean(y), lower = quantile(y,
-                                                                                                                0.025), upper = quantile(y, 0.975))
-  p = ggplot(df0, aes(x = as.numeric(as.character(point)),
-                      y = mean, fill = step)) + geom_line() + geom_ribbon(aes(ymin = lower,
-                                                                              ymax = upper), alpha = 0.2) + scale_fill_brewer() + xlab("x") +
-    ylab("y")
+  names(df0)[4] <- "y"
+  select_step <- floor(seq(1, M, length = 5))
+  df0 <- df0 %>% filter(step %in% select_step) %>%
+    group_by(point, step) %>%
+    summarise(mean = mean(y),
+              lower = quantile(y, .025),
+              upper = quantile(y, 0.975))
+  df0 <- as.data.frame(df0)
+
+  ystar.true <- ytrue(given$xstar) - mean(ytrue(given$x))
+  truth <- data.frame(point = factor(given$xstar),
+                      step = factor(rep("truth", nrow(given$xstar))),
+                      mean = ystar.true,
+                      lower = ystar.true,
+                      upper = ystar.true)
+
+  observed <- data.frame(point = factor(given$x),
+                         step = factor(rep("obs", nrow(given$x))),
+                         mean = given$y,
+                         lower = given$y,
+                         upper = given$y)
+
+  # bind truth to df0 so that colours steps in the desired order
+  #df0 <- rbind(df0, truth)
+  df0$step <- droplevels(df0$step)
+
+  p <- ggplot(df0, aes(x = as.numeric(as.character(point)),
+                      y = mean, fill = step)) +
+    geom_line() +
+    geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.3) +
+    geom_line(colour = "darkRed", data = truth, size = 0.6) +
+    geom_point(aes(x = as.numeric(as.character(point)), y = mean),
+               data = observed, color = "darkRed") +
+    scale_fill_brewer(palette = "YlOrBr") +
+    xlab("x") + ylab("y")
+
   return(p)
 }
 
 
 # Plotting results from scmc_ex1
-library(ggplot2); library(dplyr)
 t <- M
 plotSamplePaths(given = given,
-                particles.l = particles.l[,1:t],
                 particles.ystar = particles.ystar[,1:t,])
 
-step.sizes
-tail(acceptances[[2]])
-tail(acceptances[[floor(M/2)]])
-tail(acceptances[[M]])
+# step.sizes
+# tail(acceptances[[2]])
+# tail(acceptances[[floor(M/2)]])
+# tail(acceptances[[M]])
+#
+# hist(particles.l[,t])
+# hist(particles.sig2[,t])
+#
+# median(particles.l[,t])
+# median(particles.sig2[,t])
 
-hist(particles.l[,t])
-hist(particles.sig2[,t])
+#ystar.true <- ytrue(given$xstar) - mean(ytrue(given$x))
 
-median(particles.l[,t])
-median(particles.sig2[,t])
+plot(x = given$x, y = given$y, pch = 16, cex = 2) #, ylim = c(-0.4, 0.7))
+for (n in 1:N) {
+  points(x = given$xstar, y = particles.ystar[n,M,], type = "l", col = "red")
+  points(x = given$xstar, y = particles.ystar[n,10,], type = "l", col = "green")
+  points(x = given$xstar, y = particles.ystar[n,5,], type = "l", col = "blue")
+  points(x = given$xstar, y = particles.ystar[n,1,], type = "l", col = "pink")
+}
+#points(x = given$xstar, y = ytrue(given$xstar) - mean(ytrue(given$x)), type = "l")
 
-ystar.true <- ytrue(given$xstar) - mean(ytrue(given$x))
 
-# plot(x = given$x, y = given$y, pch = 16, cex = 2)
+# plot(x = given$xprime, y = yprimetrue(given$xprime), pch = 16, cex = 2)
 # for (n in 1:N) {
-#   #points(x = given$xstar, y = particles.ystar[n,10,], type = "l", col = "red")
-#   points(x = given$xstar, y = particles.ystar[n,13,], type = "l", col = "green")
-#   points(x = given$xstar, y = particles.ystar[n,14,], type = "l", col = "blue")
-#   points(x = given$xstar, y = particles.ystar[n,19,], type = "l", col = "pink")
+#   points(x = given$xprime, y = particles.yprime[n,8,], col = "blue")
 # }
-# points(x = given$xstar, y = ytrue(given$xstar) - mean(ytrue(given$x)), type = "l")
-
-
-plot(x = given$xprime, y = 20 / (20 * given$xprime), pch = 16, cex = 2)
-# for (n in 1:N) {
-#   points(x = given$xprime, y = particles.yprime[n,14,], col = n)
-# }
-points(x = given$xprime, y = apply(particles.yprime[,5,], 2, mean), col = "red", cex = 2, pch = 16)
-points(x = given$xprime, y = apply(particles.yprime[,10,], 2, mean), col = "green", cex = 2, pch = 16)
-points(x = given$xprime, y = apply(particles.yprime[,14,], 2, mean), col = "blue", cex = 2, pch = 16)
-points(x = given$xprime, y = apply(particles.yprime[,t,], 2, mean), col = "pink", cex = 2, pch = 16)
-
-points(x = xd, y = apply(yd[,5,], MARGIN = 2, FUN = mean), col = "red", cex = 2, pch = 17)
-points(x = xd, y = apply(yd[,10,], MARGIN = 2, FUN = mean), col = "green", cex = 2, pch = 17)
-
-points(x = given$xprime, y = c(20 / (20 * given$xprime)))
+# points(x = given$xprime, y = apply(particles.yprime[,5,], 2, mean), col = "red", cex = 2, pch = 16)
+# points(x = given$xprime, y = apply(particles.yprime[,10,], 2, mean), col = "green", cex = 2, pch = 16)
+# points(x = given$xprime, y = apply(particles.yprime[,14,], 2, mean), col = "blue", cex = 2, pch = 16)
+# points(x = given$xprime, y = apply(particles.yprime[,t,], 2, mean), col = "pink", cex = 2, pch = 16)
+#
+# points(x = xd, y = apply(yd[,5,], MARGIN = 2, FUN = mean), col = "red", cex = 2, pch = 17)
+# points(x = xd, y = apply(yd[,10,], MARGIN = 2, FUN = mean), col = "green", cex = 2, pch = 17)
+#
+# points(x = given$xprime, y = c(20 / (20 * given$xprime)))
 
 ################################################################################
 # library(MonGP); library(MASS); library(lgarch); library(dplyr); library(ggplot2)

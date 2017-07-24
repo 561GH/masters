@@ -118,20 +118,22 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
   # Vsqrt.inv <- solve( (sqrt(V)) )
   # corr <- Vsqrt.inv %*% tau2.xstarprime %*% Vsqrt.inv
 
-  # wtf
-  if (tau2.xstarprime[1,1] <= 1e-4) {
-    ystarnew <- ystarold
-    yprimenew <- yprimeold
+  # wtf don't get new samples
+  # if (tau2.xstarprime[1,1] <= 1e-4) {
+  #   ystarnew <- ystarold
+  #   yprimenew <- yprimeold
+  #
+  #   return(list(ystarcurrent = ystarcurrent,
+  #               yprimecurrent = yprimecurrent,
+  #               accepted = NA,
+  #               prob = NA,
+  #               ystar2old = ystarold[2],
+  #               ystar2new = ystarnew[2],
+  #               yprime2old = yprimeold[2],
+  #               yprime2new = yprimenew[2]))
+  # }
 
-    return(list(ystarcurrent = ystarcurrent,
-                yprimecurrent = yprimecurrent,
-                accepted = NA,
-                prob = NA,
-                ystar2old = ystarold[2],
-                ystar2new = ystarnew[2],
-                yprime2old = yprimeold[2],
-                yprime2new = yprimenew[2]))
-  }
+  cat("Actually sampled wow.")
 
   # we have a symmetric proposal distribution
   # i.e. doesn't depend on previous ystar yprime value

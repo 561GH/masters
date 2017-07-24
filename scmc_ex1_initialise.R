@@ -1,19 +1,6 @@
 # SCMC initialise particles
 
 ## run setup ###################################################################
-library(mvtnorm)
-ytrue <- function(x) {log(20 * x + 1)}  # x > -1/20; monotone increasing function
-
-# x = inputs where fcn evaluated
-# xstar = prediction set inputs
-# xprime = derivative set inputs
-# true/known model values
-given <- list(x = cbind(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1)),
-              xstar = cbind(seq(0, 1, length.out = 50)),
-              xprime = cbind(c(0.42, 0.47, 0.52, 0.57, 0.62,
-                               0.67, 0.72, 0.77, 0.82, 0.87)),
-              y = ytrue(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1)) -
-                mean(ytrue(c(0, 0.1, 0.2, 0.3, 0.4, 0.9, 1))) )
 
 ## start MH within gibbs #######################################################
 # i.e. unconstrained SCMC
@@ -116,15 +103,18 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
     #cat("\t \t \t -> acceptance rate for sig2:", sum(accepted.sig2) / i, "\n")
 
     ## UPDATE ystaryprime ########################################################
+    nugget <- 1e-6
+
     pred.parameters <- predictiveMeanCov(given = given,
                                          l = lcurrent, sig2 = sig2current)
     mu.xstarprime <- pred.parameters$mu.xstarprime
-    tau2.xstarprime <- pred.parameters$cov.xstarprime
+    tau2.xstarprime <- pred.parameters$cov.xstarprime +
+      diag(rep(nugget, nrow(given$xstar) + nrow(given$xprime)))
 
     # MAKE SURE tau2.xstarprime IS POSTIVE SEMI-DEFINITE
     # eigen(tau2.xstarprime)$values
 
-    ystaryprimenew <- rmvnorm(1, mean = mu.xstarprime, sigma = tau2.xstarprime)
+    ystaryprimenew <- rmvn(1, m = mu.xstarprime, S = tau2.xstarprime)
     ystarnew <- ystaryprimenew[,1:nrow(xstar)]
     yprimenew <- ystaryprimenew[,-(1:nrow(xstar))]
 

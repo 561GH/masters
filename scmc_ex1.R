@@ -6,16 +6,13 @@
 # + build package
 # set.seed(761)
 
-M <- 10  # total time
-# tauM <- 10e-6
-# taus <- seq(0, tauM, length.out = M+1)  # TODO: sequence of taus???
-# taus <- taus[2:length(taus)]
+M <- 60  # total time
 
 # shirin's tau sequence i.e. reciprocal of her nuseq
 taus <- 1 / c(Inf, ( seq(2, .1, length.out = M-1) )^5)
 
-N <- 100  # particles desired for SCMC
-burn <- 200  # burn in for initialising particles
+N <- 1000  # particles desired for SCMC
+burn <- 2000  # burn in for initialising particles
 
 # qqq
 acceptances <- vector("list", M)
@@ -30,9 +27,7 @@ particles.sig2 <- matrix(NA, nrow = N, ncol = M)
 particles.ystar <- array(NA, dim = c(N, M, nrow(given$xstar)))
 particles.yprime <- array(NA, dim = c(N, M, nrow(given$xprime)))
 
-init <- eta0(eta.init = list(l = 0.5, sig2 = 10,
-                             ystar = ytrue(given$xstar) - mean(ytrue(given$x)),
-                             yprime = 20 / (20 * given$xprime) ),
+init <- eta0(eta.init = initial.values,
              given = given,  # data, locations, obs, etc.)
              N = burn + N, # particles
              v1 = 0.07) # step size for l proposal
@@ -60,11 +55,11 @@ W[,1] <- 1/N
 # step.l <- 0.07  # step size for l
 # step.sig2 <- 0.01  # step size for sig2
 # step.ystaryprime <- 0.01  # tune this
-step.sizes <- rep(NA, M)  # qqq
-step.sizes[[2]] <- 0.2
-
-step.sizes.l <- rep(NA, M)  # qqq
-step.sizes.l[[2]] <- 0.07
+# step.sizes <- rep(NA, M)  # qqq
+# step.sizes[[2]] <- 0.2
+#
+# step.sizes.l <- rep(NA, M)  # qqq
+# step.sizes.l[[2]] <- 0.07
 
 # TODO: should let step size vary to provide decent acceptance rates (during burn in?)
 
@@ -140,7 +135,7 @@ for (t in 2:M) {
   ## the t-th time step particles (not t+1 as the alg says)
 
   ### Track acceptance rate ====================================================
-  accepted.l <- accepted.sig2 <- accepted.ystaryprime <- 0
+  #accepted.l <- accepted.sig2 <- accepted.ystaryprime <- 0
 
   ### Sample and update chains =================================================
   # TODO: fill this in after update.all done (acceptance rates ??? ignore for now)

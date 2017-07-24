@@ -135,7 +135,19 @@ meetings:
 			always resample according to the weights no matter what
 			don't multiply new weights by the old ones
 			never actually propose anything new
+		testing different combinations (default: N = 100, burn = 50, M = 20, sin(x^10))
+			ess + new samples
+				sample depending on ESS (calcualtes weights following the paper) + new proposals
+				need many many more time steps
+				the only combo that didn't die at some time step
+				for 60 time steps, better than 20, but still worse than "60 always resample + no new samples"
+			ess + no new samples
+				dies at some point
+				dies even with longer time step (60); results still kind of suck
+			always resample + new samples
+			always resample + no new samples
 			
+
 questions:
 	- why only allow l > 0.05 proposals?
 		probably for numerical stability reasons; also length scale close to zero is stupid
