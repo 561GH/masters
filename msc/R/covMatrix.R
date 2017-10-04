@@ -1,5 +1,4 @@
 # Covariance matrix for a matrix of inputs #####################################
-#' @import foreach
 #' @export
 covMatrix <- function(X1,
                       X2,
@@ -35,10 +34,9 @@ covMatrix <- function(X1,
   }
 
   covar.fun <- match.arg(arg = covar.fun,
-                         choices = c("matern", "matern1", "matern2"),
+                         choices = c("matern", "matern1", "matern2",
+                                     "sqexp", "sqexp1", "sqexp2"),
                          several.ok = FALSE)
-  if ((covar.fun == "matern1") & d1 == 0) {stop("Specify d1.")}
-  if ((covar.fun == "matern2") & (d1 == 0 | d2 == 0)) {stop("Specify d1, d2.")}
 
   # setup ######################################################################
 
@@ -52,6 +50,10 @@ covMatrix <- function(X1,
   # matern #####################################################################
   if (covar.fun == "matern") {
 
+    if (d1 + d2 != 0) {
+      stop("Are you sure `matern` or is correct?")
+    }
+
     for (k in 1:d) {
       diff.k <- outer(X1[, k], X2[, k], "-")
       td <- theta[k] * abs( diff.k )
@@ -61,9 +63,14 @@ covMatrix <- function(X1,
   }
 
   # matern1 ####################################################################
-  # derivative is in first argument!!!
+  # derivative is in 1st argument if d1 > 0!!!
   # i.e. lower triangle for eqn (3.8) EX. r11(Xdelta, X)
+  # derivative is in 2nd argument if d2 > 0!!!
   if (covar.fun == "matern1") {
+
+    if ((d1 > 0) & (d2 > 0)) {
+      stop("Are you sure `matern1` is correct?")
+    }
 
     for (k in 1:d) {
       diff.k <- outer(X1[, k], X2[, k], "-")
@@ -73,7 +80,11 @@ covMatrix <- function(X1,
         out <- out * (- theta[k] / 3 * sign(diff.k) * (td + td^2) * exp(-td))
       }
 
-      if (k != d1) {
+      if (k == d2) {
+        out <- out * ( theta[k] / 3 * sign(diff.k) * (td + td^2) * exp(-td))
+      }
+
+      if ((k != d1) & (k != d2)) {
         out <- out * ( 1 + td + td^2 / 3 ) * exp( -td)
       }
     }
@@ -82,6 +93,10 @@ covMatrix <- function(X1,
 
   # matern2 ####################################################################
   if (covar.fun == "matern2") {
+
+    if ((d1 == 0) | (d2 == 0)) {
+      stop("Are you sure `matern2` is correct?")
+    }
 
     if (d1 == d2) {  # need second derivative
       for (k in 1:d) {
@@ -107,11 +122,105 @@ covMatrix <- function(X1,
         }
 
         if (k == d2) {  # dg/dxj = -dg/dxi; so different by a negative; might be wrong be careful
-          out <- out * (theta[k] / 3 * sign(diff.k) * (td + td^2) * exp(-td))
+          out <- out * ( theta[k] / 3 * sign(diff.k) * (td + td^2) * exp(-td))
         }
 
-        if (k != d1 & k != d2) {
+        if ((k != d1) & (k != d2)) {
           out <- out * ( 1 + td + td^2 / 3 ) * exp( -td)
+        }
+      }
+    }
+
+  }
+
+  # sqexp #####################################################################
+  alpha <- 2
+  # theta <- sqrt(5) / l
+  if (covar.fun == "sqexp") {
+
+    if (d1 + d2 != 0) {
+      stop("Are you sure `sqexp` or is correct?")
+    }
+
+    for (k in 1:d) {
+      #diff.k <- t(outer(X2[, k], X1[, k], "-"))
+      diff.k <- outer(X1[, k], X2[, k], "-")
+      out <- out * exp( - 1 / l[k] * (abs( diff.k ))^alpha)
+    }
+
+  }
+
+  # sqexp1 ####################################################################
+  # derivative is in 1st argument if d1 > 0!!!
+  # i.e. lower triangle for eqn (3.8) EX. r11(Xdelta, X)
+  # derivative is in 2nd argument if d2 > 0!!!
+  if (covar.fun == "sqexp1") {
+
+    if ((d1 > 0) & (d2 > 0)) {
+      stop("Are you sure `sqexp1` is correct?")
+    }
+
+    for (k in 1:d) {
+      #diff.k <- t(outer(X2[, k], X1[, k], "-"))
+      diff.k <- outer(X1[, k], X2[, k], "-")
+
+      if (k == d1) {
+        out <- out * (-alpha / l[k]) * (abs(diff.k))^(alpha - 1) * sign(diff.k) *
+          exp( - 1 / l[k] * (abs( diff.k ))^alpha)
+      }
+
+      if (k == d2) {
+        out <- out * (alpha / l[k]) *  (abs(diff.k))^(alpha - 1) * sign(diff.k) *
+          exp( - 1 / l[k] * (abs( diff.k ))^alpha)
+      }
+
+      if ((k != d1) & (k != d2)) {
+        out <- out * exp( - 1 / l[k] * (abs( diff.k ))^alpha)
+      }
+    }
+
+  }
+
+  # sqexp2 ####################################################################
+  if (covar.fun == "sqexp2") {
+
+    if ((d1 == 0) | (d2 == 0)) {
+      stop("Are you sure `sqexp2` is correct?")
+    }
+
+    if (d1 == d2) {  # need second derivative
+      for (k in 1:d) {
+        #diff.k <- t(outer(X2[, k], X1[, k], "-"))
+        diff.k <- outer(X1[, k], X2[, k], "-")
+
+        if (k == d1) {  # mine has no negative beside "out"
+          out <- out * (alpha * (abs(diff.k))^(alpha - 2) / l[k] -
+                          (alpha * (abs(diff.k))^(alpha - 1) / l[k])^2 ) *
+            exp( - 1 / l[k] * (abs( diff.k ))^alpha)
+        }
+        if (k != d1) {
+          out <- out * exp( - 1 / l[k] * (abs( diff.k ))^alpha)
+        }
+      }
+    }
+
+    if (d1 != d2) {  # don't actually need second derivative
+      for (k in 1:d){
+        #diff.k <- t(outer(X2[, k], X1[, k], "-"))
+        diff.k <- outer(X1[, k], X2[, k], "-")
+
+        if (k == d1) {
+          out <- out * (-alpha / l[k]) * (abs(diff.k))^(alpha - 1) * sign(diff.k) *
+            exp( - 1 / l[k] * (abs( diff.k ))^alpha)
+        }
+
+        if (k == d2) {  # dg/dxj = -dg/dxi; so different by a negative; might be wrong be careful
+          out <- out * (alpha / l[k]) * (abs(diff.k))^(alpha - 1) * sign(diff.k) *
+            exp( - 1 / l[k] * (abs( diff.k ))^alpha)
+        }
+
+        if ((k != d1) & (k != d2)) {
+          out <- out * exp( - 1 / l[k] * (abs( diff.k ))^alpha)
         }
       }
     }
@@ -121,9 +230,9 @@ covMatrix <- function(X1,
   ## make sure resulting matrix is symmetric if relevant #######################
   out <- sig2 * out
 
-  if (n1 == n2) {  # i.e. out is a square matrix
-    out <- ( out + t(out) ) / 2
-  }
+  # if (n1 == n2) {  # i.e. out is a square matrix
+  #   out <- ( out + t(out) ) / 2
+  # }
 
   return(out)
 
