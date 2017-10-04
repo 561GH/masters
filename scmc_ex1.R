@@ -6,13 +6,13 @@
 # + build package
 # set.seed(761)
 
-M <- 60  # total time
+M <- 20  # total time
 
 # shirin's tau sequence i.e. reciprocal of her nuseq
 taus <- 1 / c(Inf, ( seq(2, .1, length.out = M-1) )^5)
 
-N <- 1000  # particles desired for SCMC
-burn <- 2000  # burn in for initialising particles
+N <- 100  # particles desired for SCMC
+burn <- 20  # burn in for initialising particles
 
 # qqq
 acceptances <- vector("list", M)
