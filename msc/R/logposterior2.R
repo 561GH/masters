@@ -18,14 +18,6 @@ logposterior2 <- function(l,
   x <- cbind(given$x)
 
   ## means and covariances
-
-  ######## debugging:
-  l <- lnew
-  sig2 <- sig2old
-  ystar <- ystarold
-  yprime <- yprimeold
-  ########
-
   nugget <- 0
   kriging <- predictiveMeanCov2(given = given, l = l, sig2 = sig2,
                                 nugget1 = 0, nugget2 = 0)

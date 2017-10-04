@@ -230,10 +230,6 @@ covMatrix <- function(X1,
   ## make sure resulting matrix is symmetric if relevant #######################
   out <- sig2 * out
 
-  # if (n1 == n2) {  # i.e. out is a square matrix
-  #   out <- ( out + t(out) ) / 2
-  # }
-
   return(out)
 
 }
