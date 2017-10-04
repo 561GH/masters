@@ -46,5 +46,6 @@ predictiveMeanCov <- function(given, l, sig2) {
   tau2.xstarprime <- ( tau2.xstarprime + t(tau2.xstarprime) ) / 2
 
   return(list(mu.xstarprime = mu.xstarprime,
-              cov.xstarprime = tau2.xstarprime))
+              cov.xstarprime = tau2.xstarprime,
+              R.xx = R))
 }
