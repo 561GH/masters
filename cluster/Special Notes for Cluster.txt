@@ -1,0 +1,3 @@
+It's actually often quite important whether your file extension is .r or .R
+
+You won't use WinSCP, but probably FileZilla or something

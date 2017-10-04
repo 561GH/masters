@@ -1,0 +1,29 @@
+Request 20 seconds of wall time, with 4gb
+
+qsub -I -V -l walltime=00:00:20,nodes=1:ppn=1,pmem=4gb -W group_list=colony-users
+
+
+
+Load R
+
+module load LANG/R/3.2.0
+
+
+
+Convert a Windows 'pbs' file into unix
+
+dos2unix mymatrix.pbs
+
+
+
+
+Send pbs file
+
+qsub "..."
+
+
+
+View order in queue
+
+qstat , or qstat -q , or more found on the Colony Cluster info page
+

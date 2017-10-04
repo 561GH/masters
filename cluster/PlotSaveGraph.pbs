@@ -1,0 +1,24 @@
+## submit with qsub -V QuadPowerRun.pbs
+## Job will use 1 processors. Ask for 1 nodes, with one processor per node
+#PBS -l nodes=1:ppn=1,pmem=1gb,walltime=0:01:00
+#PBS -W group_list=colony-users
+#PBS -m bae
+## replace following with your email address
+#PBS -M gghsu@sfu.ca
+#PBS -N PlotSaveGraph
+#PBS -o PlotSaveGraph.out
+#PBS -e PlotSaveGraph.err
+
+module load LANG/R/3.2.0
+
+echo "Running on host: " `hostname`
+echo "Changing to directory from which script was submitted."
+cd $PBS_O_WORKDIR
+echo "Current working directory is now: " `pwd`
+
+
+##################################################################
+# Commands to run the job
+
+R --vanilla -f "PlotSaveGraph.R"
+

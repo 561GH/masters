@@ -1,0 +1,12 @@
+
+WinSCP
+host name: queen.rcg.sfu.ca
+port number: 22 (default)
+
+putty
+host name: queen.rcg.sfu.ca
+
+- drag over file.R and file.pbs to desired folder
+- edir the .pbs file with nodes, file names, etc.
+
+run in putty: qsub file.pbs
