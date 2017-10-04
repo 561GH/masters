@@ -1,0 +1,14 @@
+Package: MonGP
+Type: Package
+Title: Monotone emulation of computer experiments
+Version: 0.1.0
+Author: Shirin Golchi
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: Emulates a computer model with monotonicity assumptions
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
+Imports: MASS, mnormt, dplyr, reshape2, ggplot2
+NeedsCompilation: no
+Packaged: 2017-06-25 04:52:02 UTC; sgolchi
