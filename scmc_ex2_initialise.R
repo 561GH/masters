@@ -3,10 +3,10 @@
 ## run setup ###################################################################
 
 # for stepping through manually
-N <- 3
-eta.init <- initial.values
-v1 <- diag(c(0.07, 0.07))
-i <- 1
+#N <- 100
+#eta.init <- initial.values
+#v1 <- diag(c(0.07, 0.07))
+#i <- 1
 
 ## start MH within gibbs #######################################################
 # i.e. unconstrained SCMC
@@ -39,7 +39,7 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
       ystarold <- eta.init$ystar
       yprimeold <- eta.init$yprime
     } else {
-      lold <- chain.l[i-1]
+      lold <- chain.l[i-1,]
       sig2old <- chain.sig2[i-1]
       ystarold <- chain.ystar[i-1,]
       yprimeold <- chain.yprime[i-1,]
@@ -50,32 +50,32 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
     chain.ystar[i,] <- ystarold
     chain.yprime[i,] <- yprimeold
 
-    ## UPDATE l ##################################################################
+    ## UPDATE l ################################################################
     lnew <- rmvn(1, m = lold, S = v1)
-    while (lnew < 0.05) {  # ensures that l isn't too stupidly small
-      lnew <- rnorm(1, mean = lold, sd = v1)
+    while (sum(lnew < 0.05) != 0) {  # ensures that all l aren't too small
+      lnew <- rmvn(1, m = lold, S = v1)
     }
 
-    num <- logposterior(l = lnew,
+    num <- logposterior2(l = lnew,
                         sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
                         given = given) +
-      log( pnorm(lold, mean = lnew, sd = v1) )#/ pnorm(0.05, mean = lnew, sd = v1) )
-    den <- logposterior(l = lold,
+      log( dmvn(lold, m = lnew, S = v1) )#/ pnorm(0.05, mean = lnew, sd = v1) )
+    den <- logposterior2(l = lold,
                         sig2 = sig2old, ystar = ystarold, yprime = yprimeold,
                         given = given) +
-      log( pnorm(lnew, mean = lold, sd = v1) )#/ pnorm(0.05, mean = lold, sd = v1) )
+      log( dmvn(lnew, m = lold, S = v1) )#/ pnorm(0.05, mean = lold, sd = v1) )
     logHR <- num - den
 
     #cat("lnew logHR:", logHR)
 
     if ( !is.nan(logHR) & !is.na(logHR) ) {  # when have -Inf - Inf get NaN
       if ( logHR > log(runif(1)) )  {
-        chain.l[i] <- lnew
+        chain.l[i,] <- lnew
         accepted.l[i] <- 1
       }
     }
 
-    lcurrent <- chain.l[i]
+    lcurrent <- chain.l[i,]
     #cat("\t \t \t -> acceptance rate for l:", sum(accepted.l) / i, "\n")
 
     ## UPDATE sig2 ###############################################################
@@ -84,11 +84,11 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
       sig2new <- rchisq(1, df = sig2old)
     }
 
-    num <- logposterior(l = lcurrent, sig2 = sig2new,
+    num <- logposterior2(l = lcurrent, sig2 = sig2new,
                         ystar = ystarold, yprime = yprimeold,
                         given = given) +
       log( pchisq(sig2new, df = sig2old) ) #/ pchisq(1.7, df = sig2old) )
-    den <- logposterior(l = lcurrent, sig2 = sig2old,
+    den <- logposterior2(l = lcurrent, sig2 = sig2old,
                         ystar = ystarold, yprime = yprimeold,
                         given = given) +
       log( pchisq(sig2old, df = sig2new) ) #/ pchisq(1.7, df = sig2new) )
@@ -109,9 +109,8 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
     #cat("\t \t \t -> acceptance rate for sig2:", sum(accepted.sig2) / i, "\n")
 
     ## UPDATE ystaryprime ########################################################
-    nugget <- 1e-6
-
-    pred.parameters <- predictiveMeanCov(given = given,
+    nugget <- 0
+    pred.parameters <- predictiveMeanCov2(given = given,
                                          l = lcurrent, sig2 = sig2current)
     mu.xstarprime <- pred.parameters$mu.xstarprime
     tau2.xstarprime <- pred.parameters$cov.xstarprime +
@@ -145,47 +144,48 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
 }
 
 ################################################################################
-# # test
-# burn <- 1
-# N <- 100
-# init <- eta0(eta.init = list(l = 0.5, sig2 = 5,
-#                              ystar = ytrue(given$xstar) - mean(ytrue(given$x)),
-#                              yprime = 20 / (20 * given$xprime) ),
-#              given = given,  # data, locations, obs, etc.)
-#              N = burn + N, # particles
-#              v1 = 0.07) # step size for l proposal
-#
-# hist(init$chain.l[-(1:burn)])
-# hist(init$chain.sig2[-(1:burn)])
-#
-#
-# particles.yprime <- init$chain.yprime[-(1:burn),]
-# plot(x = given$xprime, y = 20 / (20 * given$xprime), pch = 16, cex = 2)
-# for (n in (N-50):N) {
-#   points(x = given$xprime, y = particles.yprime[n,], type = "l", col = n)
-# }
-# points(x = given$xprime, y = apply(particles.yprime, 2, mean), pch = 16, col = "red")
-# tail(particles.yprime)
-#
-# particles.ystar <- init$chain.ystar[-(1:burn),]
-# tail(particles.ystar)
-# plot(x = given$x, y = given$y, pch = 16, cex = 2)
-# for (n in (N-50):N) {
-#   points(x = given$xstar, y = particles.ystar[n,], type = "l", col = "red")
-# }
-#
-# particles.l <- init$chain.l[-(1:burn)]
-# particles.sig2 <- init$chain.sig2[-(1:burn)]
-#
-# plot(particles.l, type = "l")
-# plot(particles.sig2, type = "l")
-#
-# ###
-# par(mfrow = c(2, 1))
-# plot(x = 1:N, y = cumsum(init$accepted.l[-(1:burn)]) / 1:N, pch = 16,
-#      ylab = "rate l")
-# abline(h = 0.2); abline(h = 0.1)
-# plot(x = 1:N, y = cumsum(init$accepted.sig2[-(1:burn)]) / 1:N, pch = 16,
-#      ylab = "rate sig2")
-# abline(h = 0.2); abline(h = 0.1)
+# test
+burn <- 500
+N <- 1000
+init <- eta0(eta.init = initial.values,
+             given = given,  # data, locations, obs, etc.)
+             N = burn + N, # particles
+             v1 = diag(c(0.1, 0.1))) # step size for l proposal
+
+particles.l <- init$chain.l[-(1:burn),]
+particles.sig2 <- init$chain.sig2[-(1:burn)]
+
+hist(particles.l[,1])
+hist(particles.l[,2])
+hist(particles.sig2)
+
+plot(particles.l[,1], type = "l")
+plot(particles.l[,2], type = "l")
+plot(particles.sig2, type = "l")
+
+# compare with true values
+particles.yprime <- init$chain.yprime[-(1:burn),]
+tail(particles.yprime)
+true.values$yprime
+
+# par(mfrow = c(floor(sqrt(ncol(particles.yprime))),
+#               ceiling(sqrt(ncol(particles.yprime)))))
+for (j in 1:ncol(particles.yprime)) {
+  pdf(file = paste("yprime", j, ".pdf", sep = ""))
+  hist(particles.yprime[,j])
+  abline(v = true.values$yprime[j], col = "red")
+  dev.off()
+}
 # par(mfrow = c(1, 1))
+
+###
+particles.ystar <- init$chain.ystar[-(1:burn),]
+tail(particles.ystar)
+true.values$ystar
+par(mfrow = c(floor(sqrt(ncol(particles.ystar))),
+              ceiling(sqrt(ncol(particles.ystar)))))
+for (j in 1:ncol(particles.ystar)) {
+  hist(particles.ystar[,j])
+  abline(v = true.values$ystar[j], col = "red")
+}
+par(mfrow = c(1, 1))
