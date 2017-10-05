@@ -128,10 +128,13 @@ given <- list(x = x,
               xprime = rbind(xprime1, xprime2),
               y = y - mean(y))
 
-initial.values <- list(l = c(0.5, 0.5), sig2 = 10,
+initial.values <- list(l = c(0.5, 0.5), sig2 = 7,
                        ystar = ytrue(xstar[,1], xstar[,2]) - mean(y) +
                          rnorm(nrow(xstar), 0, 0.5),
                        yprime = c(yprime.init1, yprime.init2))
+
+true.values <- list(ystar = ytrue(xstar[,1], xstar[,2]) - mean(y),
+                    yprime = c(yprime.init1, yprime.init2))
 
 rm(x, y, tmp1, tmp2, xprime1, xprime2, xstar,
    yprime.init1, yprime.init2, i, get.xprime1, get.xprime2)

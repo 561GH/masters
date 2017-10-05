@@ -25,6 +25,8 @@ logposterior2 <- function(l,
   tau2.xstarprime <- kriging$cov.xstarprime +
     diag(rep(2, nrow(xstar) + nrow(xprime)))
 
+  tau2.xstarprime <- (tau2.xstarprime + t(tau2.xstarprime)) / 2
+
   ## use log scale because numbers are so tiny
   log.d.y <- dmvn(as.numeric(y),
                   m = rep(0, length(y)), S = kriging$R.xx,
