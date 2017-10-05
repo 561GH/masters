@@ -1,7 +1,7 @@
 # Conditional mean and variance calculations for dim(x) = 2
 # i.e. mean and variance of (y*, yprime) | y, l, sig2
 #' @export
-predictiveMeanCov2 <- function(given, l, sig2, nugget1 = 0, nugget2 = 0) {
+predictiveMeanCov2 <- function(given, l, sig2) {
   # given: x, xstar, xprime, y; y must be drawn from 0 mean GP
   # l: length-scale GP parameter
   # sig2: constant variance GP parameter
@@ -11,58 +11,66 @@ predictiveMeanCov2 <- function(given, l, sig2, nugget1 = 0, nugget2 = 0) {
   xprime <- given$xprime
   y <- given$y
 
-  R <- covMatrix(X1 = x, X2 = x, sig2 = sig2, l = l,
-                 covar.fun = "matern") +
-    diag(nugget1, nrow(x))
-  Linv <- solve( t(chol(R)) )  # recall need transpose to match std chol def
-  Rinv <- t(Linv) %*% Linv
-
+  # separate xprime for each dimension where want to take derivatives
   n1 <- nrow(xprime) / 2  # number of derivs. in d1
   xprime1 <- xprime[1:n1,]
   xprime2 <- xprime[-(1:n1),]
 
-  S11 <- covMatrix(X1 = xstar, X2 = xstar,
-                   sig2 = sig2, l = l, covar.fun = "matern")
-  S22 <- covMatrix(X1 = xprime1, X2 = xprime1,
-                   sig2 = sig2, l = l, covar.fun = "matern2", d1 = 1, d2 = 1)
-  S33 <- covMatrix(X1 = xprime2, X2 = xprime2,
-                   sig2 = sig2, l = l, covar.fun = "matern2", d1 = 2, d2 = 2)
+  ## K is 4 x 4 blocks
+  k11 <- covMatrix(X1 = xstar, X2 = xstar, sig2 = sig2, l = l,
+                   covar.fun = "matern")
+  k44 <- covMatrix(X1 = x, X2 = x, sig2 = sig2, l = l,
+                   covar.fun = "matern")
+  k41 <- covMatrix(X1 = x, X2 = xstar, sig2 = sig2, l = l,
+                   covar.fun = "matern")
 
-  S21 <- covMatrix(X1 = xprime1, X2 = xstar, # CAREFUL SEE PAPER FOR ARG. ORDER
-                   sig2 = sig2, l = l, covar.fun = "matern1", d1 = 1)
-  S31 <- covMatrix(X1 = xprime2, X2 = xstar, # CAREFUL SEE PAPER FOR ARG. ORDER
-                   sig2 = sig2, l = l, covar.fun = "matern1", d1 = 2)
-
-  S32 <- covMatrix(X1 = xprime2, X2 = xprime1,
-                   sig2 = sig2, l = l, covar.fun = "matern2", d1 = 2, d2 = 1)
-
-  R.xstarxprime <- rbind(cbind(S11, t(S21), t(S31)),
-                         cbind(S21,   S22,  t(S32)),
-                         cbind(S31,   S32,    S33)) +
-    diag(rep(nugget2, nrow(xstar) + nrow(xprime)))
-
-  # CAREFUL SEE PAPER FOR ARG. ORDER
-  r.xstarprime.x <- rbind(covMatrix(X1 = xstar, X2 = x,
-                                    sig2 = sig2, l = l,
-                                    covar.fun = "matern"),
-                          covMatrix(X1 = xprime1, X2 = x,
-                                    sig2 = sig2, l = l,
-                                    covar.fun = "matern1", d1 = 1),
-                          covMatrix(X1 = xprime2, X2 = x,
-                                    sig2 = sig2, l = l,
-                                    covar.fun = "matern1", d1 = 2))
-  mu.xstarprime <- r.xstarprime.x %*% Rinv %*% y
-
-  # Following Rasmussen (2.19)
-  tau2.xstarprime <- R.xstarxprime -
-    r.xstarprime.x %*% Rinv %*% t(r.xstarprime.x) +
-    diag(rep(0, nrow(xstar) + nrow(xprime)))
-
-  # MAKE SURE tau2.xstarprime IS SYMMETRIC
-  tau2.xstarprime <- ( tau2.xstarprime + t(tau2.xstarprime) ) / 2
+  k22 <- covMatrix(X1 = xprime1, X2 = xprime1, sig2 = sig2, l = l,
+                   covar.fun = "matern2", d1 = 1, d2 = 1)
+  k33 <- covMatrix(X1 = xprime2, X2 = xprime2, sig2 = sig2, l = l,
+                   covar.fun = "matern2", d1 = 2, d2 = 2)
+  k32 <- covMatrix(X1 = xprime2, X2 = xprime1, sig2 = sig2, l = l,
+                   covar.fun = "matern2", d1 = 2, d2 = 1)
 
 
-  return(list(mu.xstarprime = mu.xstarprime,
-              cov.xstarprime = tau2.xstarprime,
-              R.xx = R))
+  k21 <- covMatrix(X1 = xprime1, X2 = xstar, sig2 = sig2, l = l,
+                   covar.fun = "matern1", d1 = 1)
+  k31 <- covMatrix(X1 = xprime2, X2 = xstar, sig2 = sig2, l = l,
+                   covar.fun = "matern1", d1 = 2)
+  k42 <- covMatrix(X1 = x, X2 = xprime1, sig2 = sig2, l = l,
+                   covar.fun = "matern1", d2 = 1)
+  k43 <- covMatrix(X1 = x, X2 = xprime2, sig2 = sig2, l = l,
+                   covar.fun = "matern1", d2 = 2)
+
+  # NOTE: can use transpose for upper triangular part of K
+  # only when derivative input sets have > 1 point
+  # i.e. none of the k entries are single numbers
+  # if single numbers, need to take negative for some of them
+  # (see morris_simple_example C matrix)
+  #
+  # K <- rbind( cbind(k11, t(k21), t(k31), t(k41)),
+  #             cbind(k21,   k22 , t(k32), t(k42)),
+  #             cbind(k31,   k32 ,   k33 , t(k43)),
+  #             cbind(k41,   k42 ,   k43 ,   k44) )
+
+  S11 <- k11 #K[1, 1]
+  S12 <- cbind(t(k21), t(k31), t(k41)) #K[1, 2:4]
+  S22 <- rbind( cbind(k22 , t(k32), t(k42)),
+                cbind(k32 ,   k33 , t(k43)),
+                cbind(k42 ,   k43 ,   k44) )
+  S22 <- S22
+
+  # S11 == R matrix in Golchi
+  # Sig1 == tau2.xstarprime matrix in Golchi
+  Linv <- solve( t(chol(S22)) )  # recall need transpose to match std chol def
+  S22inv <- t(Linv) %*% Linv
+  Sig1 <- S11 - S12 %*% S22inv %*% t(S12)
+  # Sig1 <- S11 - S12 %*% solve(S22, t(S12))  # not using chol decomposition
+  Sig1 <- (Sig1 + t(Sig1)) / 2
+
+  # recall we have a 0 mean GP
+  m <- 0 + S12 %*% S22inv %*% (cbind(y) - 0)
+
+  return(list(mu.xstarprime = m,
+              cov.xstarprime = Sig1,
+              R.xx = S11))
 }
