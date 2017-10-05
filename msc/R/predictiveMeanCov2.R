@@ -52,25 +52,25 @@ predictiveMeanCov2 <- function(given, l, sig2) {
   #             cbind(k31,   k32 ,   k33 , t(k43)),
   #             cbind(k41,   k42 ,   k43 ,   k44) )
 
-  S11 <- k11 #K[1, 1]
-  S12 <- cbind(t(k21), t(k31), t(k41)) #K[1, 2:4]
-  S22 <- rbind( cbind(k22 , t(k32), t(k42)),
-                cbind(k32 ,   k33 , t(k43)),
-                cbind(k42 ,   k43 ,   k44) )
-  S22 <- S22
+  S11 <- rbind( cbind(k11, t(k21), t(k31)),
+                cbind(k21,   k22 , t(k32)),
+                cbind(k31,   k32 ,   k33 ) )
+  S12 <- rbind(t(k41),
+               t(k42),
+               t(k43))
+  S22 <- k44
 
-  # S11 == R matrix in Golchi
+  # S22 == R matrix in Golchi
   # Sig1 == tau2.xstarprime matrix in Golchi
   Linv <- solve( t(chol(S22)) )  # recall need transpose to match std chol def
   S22inv <- t(Linv) %*% Linv
   Sig1 <- S11 - S12 %*% S22inv %*% t(S12)
   # Sig1 <- S11 - S12 %*% solve(S22, t(S12))  # not using chol decomposition
-  Sig1 <- (Sig1 + t(Sig1)) / 2
 
   # recall we have a 0 mean GP
-  m <- 0 + S12 %*% S22inv %*% (cbind(y) - 0)
+  m <- S12 %*% S22inv %*% y
 
   return(list(mu.xstarprime = m,
               cov.xstarprime = Sig1,
-              R.xx = S11))
+              R.xx = S22))
 }
