@@ -14,23 +14,23 @@ update.l <- function(lold,
   lcurrent <- lold
   accepted <- 0
 
-  lnew <- rnorm(1, mean = lold, sd = step)
+  lnew <- rmvn(1, m = lold, S = step)
+  while (sum(lnew < 0) != 0) {  # ensures that all l aren't negative
+    lnew <- rmvn(1, m = lold, S = step)
+  }
+
   # TODO: check proposal with shirin
   # delta <- rnorm(1, 0, sd = step.l)
   # lnew <- lold + delta
 
-  while (lnew < 0) {  # ensures that l isn't negative
-    lnew <- rnorm(1, mean = lold, sd = step)
-  }
-
-  num <- logposterior(l = lnew,
-                      sig2 = sig2, ystar = ystar, yprime = yprime,
-                      given = given) +
-    log( pnorm(lold, mean = lnew, sd = step) )#/ pnorm(0.05, mean = lnew, sd = v1) )
-  den <- logposterior(l = lold,
-                      sig2 = sig2, ystar = ystar, yprime = yprime,
-                      given = given) +
-    log( pnorm(lnew, mean = lold, sd = step) )#/ pnorm(0.05, mean = lold, sd = v1) )
+  num <- logposterior2(l = lnew,
+                       sig2 = sig2, ystar = ystar, yprime = yprime,
+                       given = given) +
+    log( dmvn(lold, m = lnew, S = step) )#/ pnorm(0.05, mean = lnew, sd = v1) )
+  den <- logposterior2(l = lold,
+                       sig2 = sig2, ystar = ystar, yprime = yprime,
+                       given = given) +
+    log( dmvn(lnew, m = lold, S = step) )#/ pnorm(0.05, mean = lold, sd = v1) )
   logHR <- num - den
 
   #cat("lnew logHR:", logHR)
@@ -56,18 +56,19 @@ update.sig2 <- function(l, sig2old,
   sig2current <- sig2old
   accepted <- 0
 
+
   sig2new <- rchisq(1, df = sig2old)
   while (sig2new <= 0.5) {  # arbitrary minimum following shirin
     sig2new <- rchisq(1, df = sig2old)
   }
 
-  num <- logposterior(l = l, sig2 = sig2new,
-                      ystar = ystar, yprime = yprime,
-                      given = given) +
+  num <- logposterior2(l = l, sig2 = sig2new,
+                       ystar = ystar, yprime = yprime,
+                       given = given) +
     log( pchisq(sig2new, df = sig2old) ) #/ pchisq(1.7, df = sig2old) )
-  den <- logposterior(l = l, sig2 = sig2old,
-                      ystar = ystar, yprime = yprime,
-                      given = given) +
+  den <- logposterior2(l = l, sig2 = sig2old,
+                       ystar = ystar, yprime = yprime,
+                       given = given) +
     log( pchisq(sig2old, df = sig2new) ) #/ pchisq(1.7, df = sig2new) )
   logHR <- num - den
 
@@ -106,9 +107,10 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
   # did not need to do metropolis for eta_0 (particle initialisation)
   # because when tau0 = 0 (no constraint), we can sample from the
   # (ystar, ynew) | l, sig2 directly
-  nugget <- 10e-6
-  pred.parameters <- predictiveMeanCov(given = given,
-                                       l = l, sig2 = sig2)
+
+  nugget <- 0
+  pred.parameters <- predictiveMeanCov2(given = given,
+                                        l = l, sig2 = sig2)
   m <- pred.parameters$mu.xstarprime
   tau2.xstarprime <- pred.parameters$cov.xstarprime +
     diag(rep(nugget, nrow(xstar) + nrow(xprime)))
@@ -139,6 +141,7 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
   # i.e. doesn't depend on previous ystar yprime value
   # ystaryprimenew <- rmvnorm(1, mean = c(ystarold, yprimeold),
   #                           sigma =  step * tau2.xstarprime) # qqq
+
   ystaryprimenew <- rmvn(1, m = c(ystarold, yprimeold),
                             S =  step * tau2.xstarprime)
   ystarnew <- ystaryprimenew[,1:nrow(xstar)]
@@ -181,7 +184,7 @@ update.ystaryprime <- function(l, sig2, ystarold, yprimeold,
 
 combine.particles <- function(out1, out2) {
 
-  return( list(l = c(out1$l, out2$l),
+  return( list(l = rbind(out1$l, out2$l),
                sig2 = c(out1$sig2, out2$sig2),
                ystar = rbind(out1$ystar, out2$ystar),
                yprime = rbind(out1$yprime, out2$yprime),
@@ -205,7 +208,7 @@ update.all <- function(accepted = NULL,
 
   foreach(i = 1:N, .combine = "combine.particles") %dopar% {
 
-    lold <- particles.l.old[i]
+    lold <- particles.l.old[i,]
     sig2old <- particles.sig2.old[i]
     ystarold <- particles.ystar.old[i,] # full ith particle for ystar as a vector
     yprimeold <- particles.yprime.old[i,] # full ith particle for yprime as a vector

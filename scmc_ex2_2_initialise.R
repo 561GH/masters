@@ -144,48 +144,48 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
 }
 
 ################################################################################
-# test
-burn <- 500
-N <- 1000
-init <- eta0(eta.init = initial.values,
-             given = given,  # data, locations, obs, etc.)
-             N = burn + N, # particles
-             v1 = diag(c(0.1, 0.1))) # step size for l proposal
-
-particles.l <- init$chain.l[-(1:burn),]
-particles.sig2 <- init$chain.sig2[-(1:burn)]
-
-hist(particles.l[,1])
-hist(particles.l[,2])
-hist(particles.sig2)
-
-plot(particles.l[,1], type = "l")
-plot(particles.l[,2], type = "l")
-plot(particles.sig2, type = "l")
-
-# compare with true values
-particles.yprime <- init$chain.yprime[-(1:burn),]
-tail(particles.yprime)
-true.values$yprime
-
-# par(mfrow = c(floor(sqrt(ncol(particles.yprime))),
-#               ceiling(sqrt(ncol(particles.yprime)))))
-for (j in 1:ncol(particles.yprime)) {
-  pdf(file = paste("yprime", j, ".pdf", sep = ""))
-  hist(particles.yprime[,j])
-  abline(v = true.values$yprime[j], col = "red")
-  dev.off()
-}
+# # test
+# burn <- 500
+# N <- 1000
+# init <- eta0(eta.init = initial.values,
+#              given = given,  # data, locations, obs, etc.)
+#              N = burn + N, # particles
+#              v1 = diag(c(0.1, 0.1))) # step size for l proposal
+#
+# particles.l <- init$chain.l[-(1:burn),]
+# particles.sig2 <- init$chain.sig2[-(1:burn)]
+#
+# hist(particles.l[,1])
+# hist(particles.l[,2])
+# hist(particles.sig2)
+#
+# plot(particles.l[,1], type = "l")
+# plot(particles.l[,2], type = "l")
+# plot(particles.sig2, type = "l")
+#
+# # compare with true values
+# particles.yprime <- init$chain.yprime[-(1:burn),]
+# tail(particles.yprime)
+# true.values$yprime
+#
+# # par(mfrow = c(floor(sqrt(ncol(particles.yprime))),
+# #               ceiling(sqrt(ncol(particles.yprime)))))
+# for (j in 1:ncol(particles.yprime)) {
+#   pdf(file = paste("yprime", j, ".pdf", sep = ""))
+#   hist(particles.yprime[,j])
+#   abline(v = true.values$yprime[j], col = "red")
+#   dev.off()
+# }
+# # par(mfrow = c(1, 1))
+#
+# ###
+# particles.ystar <- init$chain.ystar[-(1:burn),]
+# tail(particles.ystar)
+# true.values$ystar
+# par(mfrow = c(floor(sqrt(ncol(particles.ystar))),
+#               ceiling(sqrt(ncol(particles.ystar)))))
+# for (j in 1:ncol(particles.ystar)) {
+#   hist(particles.ystar[,j])
+#   abline(v = true.values$ystar[j], col = "red")
+# }
 # par(mfrow = c(1, 1))
-
-###
-particles.ystar <- init$chain.ystar[-(1:burn),]
-tail(particles.ystar)
-true.values$ystar
-par(mfrow = c(floor(sqrt(ncol(particles.ystar))),
-              ceiling(sqrt(ncol(particles.ystar)))))
-for (j in 1:ncol(particles.ystar)) {
-  hist(particles.ystar[,j])
-  abline(v = true.values$ystar[j], col = "red")
-}
-par(mfrow = c(1, 1))

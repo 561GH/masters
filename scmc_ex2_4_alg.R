@@ -6,13 +6,13 @@
 # + build package
 # set.seed(761)
 
-M <- 60  # total time
+M <- 20  # total time
 
 # shirin's tau sequence i.e. reciprocal of her nuseq
 taus <- 1 / c(Inf, ( seq(2, .1, length.out = M-1) )^5)
 
-N <- 1000  # particles desired for SCMC
-burn <- 2000  # burn in for initialising particles
+N <- 100  # particles desired for SCMC
+burn <- 50  # burn in for initialising particles
 
 # qqq
 acceptances <- vector("list", M)
@@ -22,17 +22,18 @@ debug <- vector("list", M)
 # 1. initialise (ith row = ith particle) #######################################
 ################################################################################
 # dim1 = particle, dim2 = time, dim3 = input index
-particles.l <- matrix(NA, nrow = N, ncol = M)
+
+particles.l <- array(NA, dim = c(N, M, ncol(given$x)))
 particles.sig2 <- matrix(NA, nrow = N, ncol = M)
 particles.ystar <- array(NA, dim = c(N, M, nrow(given$xstar)))
 particles.yprime <- array(NA, dim = c(N, M, nrow(given$xprime)))
 
 init <- eta0(eta.init = initial.values,
-             given = given,  # data, locations, obs, etc.)
-             N = burn + N, # particles
-             v1 = 0.07) # step size for l proposal
+             given = given,           # data, locations, obs, etc.)
+             N = burn + N,            # particles
+             v1 = diag(c(0.1, 0.1)))  # step size for l proposal
 
-particles.l[,1] <- (init$chain.l)[-(1:burn)]
+particles.l[,1,] <- (init$chain.l)[-(1:burn),]
 particles.sig2[,1] <- (init$chain.sig2)[-(1:burn)]
 particles.ystar[,1,] <- (init$chain.ystar)[-(1:burn),]
 particles.yprime[,1,] <- (init$chain.yprime)[-(1:burn),]
@@ -72,7 +73,7 @@ for (t in 2:M) {
 
   cat("\n Starting time step:", t, "out of", M, "\n")
 
-  particles.l[,t] <- particles.l[,t-1]
+  particles.l[,t,] <- particles.l[,t-1,]
   particles.sig2[,t] <- particles.sig2[,t-1]
   particles.ystar[,t,] <- particles.ystar[,t-1,]
   particles.yprime[,t,] <- particles.yprime[,t-1,]
@@ -98,22 +99,20 @@ for (t in 2:M) {
     num <- sum( log( pnorm( x * taus[t] )))
     den <- sum( log( pnorm( x * taus[t-1] )))
     return( exp(num - den) )
-    #return( (num - den) )
   }
 
   w.tildes <- apply(particles.yprime[,t,], MARGIN = 1, FUN = weight.particle)
   #w.tildes[!is.finite(w.tildes)] <- 0
   #W[,t] <- W[,t-1] * w.tildes  # shirin's code doesn't do this
 
-  W[,t] <- exp(w.tildes) / sum(exp(w.tildes))
-  W[,t] <- W[,t] / sum(W[,t])  # normalise weights
+  W[,t] <- w.tildes / sum(w.tildes)  # normalise weights
 
   ## RESAMPLING ================================================================
   ### effective sample size
   #ESSt <- 1 / sum( (W[,t])^2 )
   resample <- sample(1:N, N, replace = TRUE, prob = W[,t])
 
-  particles.l[,t] <- particles.l[resample,t]
+  particles.l[,t,] <- particles.l[resample,t,]
   particles.sig2[,t] <- particles.sig2[resample,t]
   particles.ystar[,t,] <- particles.ystar[resample,t,]
   particles.yprime[,t,] <- particles.yprime[resample,t,]
@@ -162,18 +161,19 @@ for (t in 2:M) {
   # be careful!! even though it's the old particles,
   # use the ones stored in position "t" because those are the ones
   # that have been resampled!
-  particles.new <- update.all(particles.l.old = particles.l[,t],
+  particles.new <- update.all(particles.l.old = particles.l[,t,],
                               particles.sig2.old = particles.sig2[,t],
                               particles.ystar.old = particles.ystar[,t,],
                               particles.yprime.old = particles.yprime[,t,],
                               tau = taus[t],
-                              steps = list(step.l = sd(particles.l[,t]), #step.sizes.l[t],
+                              steps = list(step.l = diag(c(var(particles.l[,t,1]),
+                                                           var(particles.l[,t,2]))), #step.sizes.l[t],
                                            step.ystaryprime = 0.01))#step.sizes[t]))
 
   acceptances[[t]] <- particles.new$acceptances[,(1:3)]  # N by 3 matrix of acceptances
   debug[[t]] <- particles.new$acceptances[,-(1:3)]  # qqq
 
-  particles.l[,t] <- particles.new$l
+  particles.l[,t,] <- particles.new$l
   particles.sig2[,t] <- particles.new$sig2
   particles.ystar[,t,] <- particles.new$ystar
   particles.yprime[,t,] <- particles.new$yprime
