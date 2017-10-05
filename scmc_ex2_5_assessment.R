@@ -1,3 +1,5 @@
+library(sm)
+
 # assess l #####################
 # sm.density(particles.l[,M,])
 # sm.density(particles.l[,M,], display = "slice")
@@ -10,46 +12,57 @@ for (t in 1:M) {
 }
 
 ## l1
-sm.density(particles.l[,1,1], col = "red")
-abline(v = mean(particles.l[,1,1]), col = "red")
+colfunc <- colorRampPalette(c("red", "yellow", "springgreen", "royalblue"))
+cols <- colfunc(20)
 
-sm.density(particles.l[,1,1], col = "red")
-for (t in 2:(M-1)) {
-  sm.density(particles.l[,t,1], add = TRUE)
-  abline(v = mean(particles.l[,t,1]))
+sm.density(particles.l[,1,1], col = cols[1])
+abline(v = mean(particles.l[,1,1]), col = cols[1])
+
+for (t in 2:M) {
+  sm.density(particles.l[,t,1], col = cols[t], add = TRUE)
+  abline(v = mean(particles.l[,t,1]), col = cols[t])
 }
 
-sm.density(particles.l[,1,1], col = "red")
-abline(v = mean(particles.l[,1,1]), col = "red")
-sm.density(particles.l[,M,1], col = "green", add = TRUE)
-abline(v = mean(particles.l[,M,1]), col = "green")
+sm.density(particles.l[,1,1], col = cols[1], add = TRUE)
+abline(v = mean(particles.l[,1,1]), col = cols[1])
 
 ## l2
-sm.density(particles.l[,1,2], col = "red")
-abline(v = mean(particles.l[,1,2]), col = "red")
+colfunc <- colorRampPalette(c("red", "yellow", "springgreen", "royalblue"))
+cols <- colfunc(20)
 
-sm.density(particles.l[,1,2], col = "red")
-for (t in 2:(M-1)) {
-  sm.density(particles.l[,t,2], add = TRUE)
-  abline(v = mean(particles.l[,t,2]))
+sm.density(particles.l[,1,2], col = cols[1])
+abline(v = mean(particles.l[,1,2]), col = cols[1])
+
+for (t in 2:M) {
+  sm.density(particles.l[,t,2], col = cols[t], add = TRUE)
+  abline(v = mean(particles.l[,t,2]), col = cols[t])
 }
 
-sm.density(particles.l[,1,2], col = "red")
-abline(v = mean(particles.l[,1,2]), col = "red")
-sm.density(particles.l[,M,2], col = "green", add = TRUE)
-abline(v = mean(particles.l[,M,2]), col = "green")
+sm.density(particles.l[,1,2], col = cols[1], add = TRUE)
+abline(v = mean(particles.l[,1,2]), col = cols[1])
 
 
 # assess sig2 #####################
-sm.density(particles.sig2[,1], col = "red")
+colfunc <- colorRampPalette(c("red", "yellow", "springgreen", "royalblue"))
+cols <- colfunc(20)
 
-for (t in 2:(M-1)) {
-  sm.density(particles.sig2[,t], add = TRUE)
-  abline(v = mean(particles.sig2[,t]))
+sm.density(particles.sig2[,1], col = cols[1])
+abline(v = mean(particles.sig2[,1]), col = cols[1])
+
+for (t in 2:M) {
+  sm.density(particles.sig2[,t], col = cols[t], add = TRUE)
+  abline(v = mean(particles.sig2[,t]), col = cols[t])
 }
 
-sm.density(particles.sig2[,1], col = "red", add = TRUE)
-abline(v = mean(particles.sig2[,1]), col = "red")
+sm.density(particles.sig2[,1], col = cols[1], add = TRUE)
+abline(v = mean(particles.sig2[,1]), col = cols[1])
 
-sm.density(particles.sig2[,M], col = "green", add = TRUE)
-abline(v = mean(particles.sig2[,M]), col = "green")
+# acceptance rates? #################
+all.rates <- NULL
+for (t in 1:M) {
+  all.rates <- rbind(all.rates,
+                     (acceptances[[t]])[N,])
+}
+all.rates.frame <- cbind(time = 2:M, all.rates / N)
+
+# FIX
