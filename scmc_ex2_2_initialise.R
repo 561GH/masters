@@ -109,7 +109,7 @@ eta0 <- function(eta.init,  # initial values for l, sig2, ystar, yprime is list
     #cat("\t \t \t -> acceptance rate for sig2:", sum(accepted.sig2) / i, "\n")
 
     ## UPDATE ystaryprime ########################################################
-    nugget <- 0
+    nugget <- 0#1e-6
     pred.parameters <- predictiveMeanCov2(given = given,
                                          l = lcurrent, sig2 = sig2current)
     mu.xstarprime <- pred.parameters$mu.xstarprime

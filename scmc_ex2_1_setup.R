@@ -92,11 +92,12 @@ yprime2 <- function(x1, x2) {10*9*x2^8 + 8*7*x2^6}
 # Setup reduced ################################################################
 library(DiceDesign)
 
-x <- lhsDesign(n = 15, dimension = 2, seed = 761)$design
+x <- lhsDesign(n = 15, dimension = 2, seed = 461)$design
 y <- ytrue(x1 = x[,1], x2 = x[,2])
 plot(x = x[,1], y = x[,2], pch = 16)
 
 xstar <- rbind(c(3, 5), c(4, 3), c(5, 4), c(6, 7), c(7, 6)) / 10
+text(x = xstar[,1], y = xstar[,2], labels = paste(1:5), col = "lightblue", cex = 2)
 points(x = xstar[,1], y = xstar[,2], pch = 16, col = "blue")
 
 get.xprime1 <- function(xstar) {
@@ -129,9 +130,9 @@ given <- list(x = x,
               xprime = rbind(xprime1, xprime2),
               y = y - mean(y))
 
-initial.values <- list(l = c(0.5, 0.5), sig2 = 7,
+initial.values <- list(l = c(0.4, 0.4), sig2 = 7,
                        ystar = ytrue(xstar[,1], xstar[,2]) - mean(y) +
-                         rnorm(nrow(xstar), 0, 0.5),
+                         rnorm(nrow(xstar), 0, 0.2),
                        yprime = c(yprime.init1, yprime.init2))
 
 true.values <- list(ystar = ytrue(xstar[,1], xstar[,2]) - mean(y),
