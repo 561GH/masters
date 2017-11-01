@@ -199,3 +199,24 @@ for (t in 2:ncol(frame.ystar2new)) {
 
 abline(v = true.values$ystar[2], cex = 6)
 ```
+
+```{r sqrt sigma2 posterior}
+colfunc <- colorRampPalette(c("red", "yellow", "springgreen", "royalblue"))
+cols <- colfunc(M)
+
+particles.sqrt.sig2 <- sqrt(particles.sig2)
+
+sm.density(particles.sqrt.sig2[,1], col = cols[1], xlab = "sqrt(sig2)")
+abline(v = mean(particles.sqrt.sig2[,1]), col = cols[1])
+
+for (t in 2:M) {
+  sm.density(particles.sqrt.sig2[,t], col = cols[t], add = TRUE)
+  abline(v = mean(particles.sqrt.sig2[,t]), col = cols[t])
+}
+
+sm.density(particles.sqrt.sig2[,1], col = cols[1], add = TRUE)
+abline(v = mean(particles.sqrt.sig2[,1]), col = cols[1])
+
+abline(v = mean(particles.sqrt.sig2[,M]), col = "black", cex = 6)
+```
+
