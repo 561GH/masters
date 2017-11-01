@@ -1,11 +1,13 @@
 ### Sampling functions #########################################################
-update.all <- function(accepted = NULL, given = given,
+update.all <- function(accepted = NULL, g = given,
                        steps,
                        particles.l.old,
                        particles.sig2.old,
                        particles.ystar.old,
                        particles.yprime.old,
                        tau) {
+
+  given <- g  # stupid thing where it doesn't like given = given
 
   # return:
   #     current: either accepted proposal, or stay at old for this iteration
@@ -210,14 +212,17 @@ update.all <- function(accepted = NULL, given = given,
   step.ystaryprime <- steps$step.ystaryprime
 
   ## progress bar
-  ntasks <- N
-  pb <- tkProgressBar(max = ntasks)
-  progress <- function(n) setTkProgressBar(pb, n)
-  opts <- list(progress = progress)
+  # ntasks <- N
+  # pb <- tkProgressBar(max = ntasks)
+  # progress <- function(n) setTkProgressBar(pb, n)
+  # opts <- list(progress = progress)
+
+  ## add to foreach args
+  #.options.snow = opts
 
   foreach(i = 1:N, .combine = "combine.particles", .inorder = TRUE,
           .export = c("update.l", "update.sig2", "update.ystaryprime", "combine.particles"),
-          .packages = "msc", .options.snow = opts) %dopar% {
+          .packages = "msc") %dopar% {
 
     lold <- particles.l.old[i,]
     sig2old <- particles.sig2.old[i]
