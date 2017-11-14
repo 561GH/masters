@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  1 NOV 2017 11:41
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  14 NOV 2017 14:40
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -409,7 +409,7 @@ Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
 Package: algpseudocode 
 
 Document Style - pseudocode environments for use with the `algorithmicx' style
-) (/Users/ggh/Desktop/report-main/.texpadtmp/main.aux)
+) (/Users/ggh/Git/masters/- report-main/.texpadtmp/main.aux)
 \openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 150.
@@ -500,7 +500,7 @@ Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 150.
 LaTeX Info: Redefining \pageref on input line 150.
 LaTeX Info: Redefining \nameref on input line 150.
- (/Users/ggh/Desktop/report-main/.texpadtmp/main.out) (/Users/ggh/Desktop/report-main/.texpadtmp/main.out)
+ (/Users/ggh/Git/masters/- report-main/.texpadtmp/main.out) (/Users/ggh/Git/masters/- report-main/.texpadtmp/main.out)
 \@outlinefile=\write3
 \openout3 = `main.out'.
 
@@ -546,85 +546,86 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 {/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2
 
-] (/Users/ggh/Desktop/report-main/.texpadtmp/main.toc)
+] (/Users/ggh/Git/masters/- report-main/.texpadtmp/main.toc)
 \tf@toc=\write4
 \openout4 = `main.toc'.
 
  [3]
 Chapter 1.
+
+Overfull \hbox (5.0797pt too wide) in paragraph at lines 225--225
+[]  
+ []
+
 LaTeX Font Info:    Font shape `OMS/lmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/lmsy/m/n' tried instead on input line 219.
-LaTeX Font Info:    Try loading font information for T1+lmtt on input line 230.
-(/usr/local/texlive/2016/texmf-dist/tex/latex/lm/t1lmtt.fd
-File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
-)
-
-Package amsmath Warning: Foreign command \atop;
-(amsmath)                \frac or \genfrac should be used instead
-(amsmath)                 on input line 249.
-
+(Font)              Font shape `OMS/lmsy/m/n' tried instead on input line 230.
 [1
 
 
 
 ]
-Overfull \hbox (53.53824pt too wide) in paragraph at lines 263--263
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 252.
+ (/usr/local/texlive/2016/texmf-dist/tex/latex/lm/t1lmtt.fd
+File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
+) [2] [3]
+
+Package amsmath Warning: Foreign command \atop;
+(amsmath)                \frac or \genfrac should be used instead
+(amsmath)                 on input line 327.
+
+
+Overfull \hbox (68.92223pt too wide) in paragraph at lines 341--341
 []  
  []
 
-[2] [3]
-Overfull \hbox (19.2598pt too wide) in paragraph at lines 369--369
+[4] [5]
+Overfull \hbox (18.38281pt too wide) in paragraph at lines 447--447
 []  
  []
 
-[4]
-Overfull \hbox (5.0797pt too wide) in paragraph at lines 389--389
-[]  
- []
-
-[5] [6]
-Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on input line 474.
- [7] [8] [9] [10] [11] <ex2sigma.png, id=225, 3372.6pt x 2009.5075pt>
-File: ex2sigma.png Graphic file (type png)
- <use ex2sigma.png>
-Package pdftex.def Info: ex2sigma.png used on input line 729.
-(pdftex.def)             Requested size: 346.89732pt x 206.66576pt.
- [12] <ex2given.png, id=234, 3372.6pt x 2009.5075pt>
-File: ex2given.png Graphic file (type png)
- <use ex2given.png>
-Package pdftex.def Info: ex2given.png used on input line 751.
-(pdftex.def)             Requested size: 424.94576pt x 253.1809pt.
+[6]
+Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on input line 473.
+ [7] [8] [9] [10] [11] <ex2sigma.pdf, id=225, 578.16pt x 433.62pt>
+File: ex2sigma.pdf Graphic file (type pdf)
+ <use ex2sigma.pdf>
+Package pdftex.def Info: ex2sigma.pdf used on input line 728.
+(pdftex.def)             Requested size: 346.89732pt x 260.17401pt.
+ [12] <ex2given.pdf, id=233, 578.16pt x 433.62pt>
+File: ex2given.pdf Graphic file (type pdf)
+ <use ex2given.pdf>
+Package pdftex.def Info: ex2given.pdf used on input line 750.
+(pdftex.def)             Requested size: 424.94576pt x 318.71017pt.
  [13pdfTeX warning (ext4): destination with the same identifier (name{figure.1.1}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.757 
-       <./ex2sigma.png>] <ex2paras.png, id=241, 3372.6pt x 2009.5075pt>
-File: ex2paras.png Graphic file (type png)
- <use ex2paras.png>
-Package pdftex.def Info: ex2paras.png used on input line 761.
-(pdftex.def)             Requested size: 424.94576pt x 253.1809pt.
- <ex2ystar.png, id=242, 3372.6pt x 2009.5075pt>
-File: ex2ystar.png Graphic file (type png)
- <use ex2ystar.png>
-Package pdftex.def Info: ex2ystar.png used on input line 771.
-(pdftex.def)             Requested size: 424.94576pt x 253.1809pt.
+l.755 \end{figure}
+                   <./ex2sigma.pdf>] <ex2paras.pdf, id=244, 722.7pt x 216.81pt>
+File: ex2paras.pdf Graphic file (type pdf)
+ <use ex2paras.pdf>
+Package pdftex.def Info: ex2paras.pdf used on input line 760.
+(pdftex.def)             Requested size: 424.94576pt x 127.4834pt.
+ <ex2ystar.pdf, id=245, 722.7pt x 433.62pt>
+File: ex2ystar.pdf Graphic file (type pdf)
+ <use ex2ystar.pdf>
+Package pdftex.def Info: ex2ystar.pdf used on input line 770.
+(pdftex.def)             Requested size: 424.94576pt x 254.96681pt.
  [14pdfTeX warning (ext4): destination with the same identifier (name{figure.1.2}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.777 
+l.776 
       pdfTeX warning (ext4): destination with the same identifier (name{figure.1.3}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.777 
-       <./ex2given.png> <./ex2paras.png>] [15pdfTeX warning (ext4): destination with the same identifier (name{figure.1.4}) has been already used, duplicate ignored
+l.776 
+       <./ex2given.pdf> <./ex2paras.pdf>] [15pdfTeX warning (ext4): destination with the same identifier (name{figure.1.4}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.802 \item I
-             n EX2. are the proposal distributions for $l, \sigma^2$ still (... <./ex2ystar.png>] [16] (/Users/ggh/Desktop/report-main/.texpadtmp/main.bbl
+l.801 \item I
+             n EX2. are the proposal distributions for $l, \sigma^2$ still (... <./ex2ystar.pdf>] [16] (/Users/ggh/Git/masters/- report-main/.texpadtmp/main.bbl
 
 LaTeX Warning: Empty `thebibliography' environment on input line 3.
 
@@ -638,25 +639,25 @@ Package atveryend Info: Empty hook `BeforeClearDocument' on input line 831.
 
 ]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 831.
- (/Users/ggh/Desktop/report-main/.texpadtmp/main.aux)
+ (/Users/ggh/Git/masters/- report-main/.texpadtmp/main.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 831.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 831.
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: <no file>.
  ) 
 Here is how much of TeX's memory you used:
- 8381 strings out of 493014
- 121107 string characters out of 6133351
- 230677 words of memory out of 5000000
+ 8380 strings out of 493014
+ 121195 string characters out of 6133351
+ 230718 words of memory out of 5000000
  11667 multiletter control sequences out of 15000+600000
  57840 words of font info for 47 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 44i,21n,28p,792b,534s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 44i,20n,28p,792b,534s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}</usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmbsy10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmmi6.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmr10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmr6.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmr8.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmr9.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmri10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmsy6.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmsy8.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on /Users/ggh/Desktop/report-main/.texpadtmp/main.pdf (21 pages, 2051990 bytes).
+Output written on "/Users/ggh/Git/masters/- report-main/.texpadtmp/main.pdf" (21 pages, 535188 bytes).
 PDF statistics:
- 352 PDF objects out of 1000 (max. 8388607)
- 301 compressed objects within 4 object streams
+ 367 PDF objects out of 1000 (max. 8388607)
+ 316 compressed objects within 4 object streams
  92 named destinations out of 1000 (max. 500000)
  149 words of extra memory for PDF output out of 10000 (max. 10000000)
 

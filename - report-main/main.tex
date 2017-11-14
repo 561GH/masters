@@ -208,154 +208,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Select notation and setup}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Covariance functions}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Let 
-\begin{itemize}
-  \item $x_i$ be a row vector. That is,  
-  ${x_i} = \left[ {\begin{array}{*{20}{c}}
-{{x_{\left( {i,1} \right)}}}&{{x_{\left( {i,2} \right)}}}& \cdots &{{x_{\left( {i,d} \right)}}}
-\end{array}} \right]$ 
-  \item $d = \dim(x)$
-  \item $d_1, d_2 \in \left\{ {0,1,2,...,\dim \left( x \right)} \right\}$, where $d_i$ indicates the dimension to which the derivative is taken for the $i$-th argument of $k(\cdot, \cdot)$
-  \item $g(\cdot)$ is a correlation function. 
-\end{itemize}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\bigskip
-\framebox[1.2\width]{$d_1 = d_2 = 0$} $\Rightarrow$ \texttt{"matern"/"sqexp"} 
-
-\begin{align}
-  Cov\left( {Y\left( {{x_1}} \right),Y\left( {{x_2}} \right)} \right) &= {k^{00}}\left( {{x_1},{x_2}} \right)\\
- &= {\sigma ^2}\prod\limits_{m = 1}^d {g\left( {{x_{\left( {1,m} \right)}},{x_{\left( {2,m} \right)}};{l_m}} \right)}
-\end{align}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% undefined control sequence: from hfill
-\bigskip
-\framebox[1.1\width]{$d_1 > 0, d_2 = 0$ or $d_1 = 0, d_2 > 0$} $\Rightarrow$ \texttt{"matern1"/"sqexp1"}
-
-\begin{align}
-  \frac{\partial }{{\partial {x_{\left( {1,i} \right)}}}}Cov\left( {Y\left( {{x_1}} \right),Y\left( {{x_2}} \right)} \right) &= {k^{i0}}\left( {{x_1},{x_2}} \right)\\
- &= {\sigma ^2}\frac{\partial }{{\partial {x_{\left( {1,i} \right)}}}}\prod\limits_{m = 1}^d {g\left( {{x_{\left( {1,m} \right)}},{x_{\left( {2,m} \right)}};{l_m}} \right)} \\
- &= {\sigma ^2}\left[ {\prod\limits_{m = 1\atop
-m \ne i}^d {g\left( {{x_{\left( {1,m} \right)}},{x_{\left( {2,m} \right)}};{l_m}} \right)} } \right]\left[ {\frac{\partial }{{\partial {x_{\left( {1,i} \right)}}}}g\left( {{x_{\left( {1,i} \right)}},{x_{\left( {2,i} \right)}};{l_i}} \right)} \right]\\
-\frac{\partial }{{\partial {x_{\left( {2,i} \right)}}}}Cov\left( {Y\left( {{x_1}} \right),Y\left( {{x_2}} \right)} \right) &= {k^{0i}}\left( {{x_1},{x_2}} \right)\\
- &=  - {k^{i0}}\left( {{x_1},{x_2}} \right)
-\end{align}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\bigskip
-\framebox[1.2\width]{$d_1, d_2 > 0$} $\Rightarrow$ \texttt{"matern2"/"sqexp2"}
-
-\begin{align}
-    \frac{{{\partial ^2}}}{{\partial {x_{\left( {2,j} \right)}}\partial {x_{\left( {1,i} \right)}}}} &Cov\left( {Y\left( {{x_1}} \right),Y\left( {{x_2}} \right)} \right) = {k^{ij}}\left( {{x_1},{x_2}} \right)\\
- &= \left\{ \begin{array}{l}
-{\sigma ^2}\left[ {\prod\limits_{m = 1\atop
-m \ne i,j}^d {g\left( {{x_m},x{'_m};{l_m}} \right)} } \right]\left[ {\frac{{{\partial ^2}}}{{\partial {x_{\left( {2,i} \right)}}\partial {x_{\left( {1,i} \right)}}}}g\left( {{x_{\left( {1,i} \right)}},{x_{\left( {2,i} \right)}};{l_i}} \right)} \right],i = j\\
-{\sigma ^2}\left[ {\prod\limits_{m = 1\atop
-m \ne i,j}^d {g\left( {{x_m},x{'_m};{l_m}} \right)} } \right]\left[ {\frac{\partial }{{\partial {x_{\left( {2,j} \right)}}}}g\left( {{x_{\left( {1,j} \right)}},{x_{\left( {2,j} \right)}};{l_j}} \right)} \right]\left[ {\frac{\partial }{{\partial {x_{\left( {1,i} \right)}}}}g\left( {{x_{\left( {1,i} \right)}},{x_{\left( {2,i} \right)}};{l_i}} \right)} \right],i \ne j
-    \end{array} \right.
-\end{align}
-
-%\begin{align*}
-%    A\left(x\right)=
-%    \begin{cases} 1, &\textrm{if } x = 1 \\
-%        0, &\textrm{otherwise}
-%    \end{cases}
-%\end{align*}
-
-\pagebreak
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Multiple inputs}
-
-$k^{d_1d_2}(x_1, x_2)$ has been defined so that both arguments are row vectors. 
-That is,  
-  ${x_i} = \left[ {\begin{array}{*{20}{c}}
-{{x_{\left( {i,1} \right)}}}&{{x_{\left( {i,2} \right)}}}& \cdots &{{x_{\left( {i,d} \right)}}}
-\end{array}} \right]$, and so $d = \dim(x)$. 
-
-Now I extend the definition of $k(\cdot, \cdot)$ to the function $K^{d_1d_2}(\cdot, \cdot)$, which allows for multiple inputs. 
-Let 
-
-\begin{align}
-\underbrace X_{{n_i} \times d} = \left[ {\begin{array}{*{20}{c}}{{x_1}}\\ \vdots \\{{x_{{n_i}}}}\end{array}} \right] = \left[ {\begin{array}{*{20}{c}}{{x_{\left( {1,1} \right)}}}&{}&{{x_{\left( {1,d} \right)}}}\\ \vdots &{}& \vdots \\{{x_{\left( {{n_i},1} \right)}}}&{}&{{x_{\left( {{n_i},d} \right)}}}\end{array}} \right]
-\end{align}
-
-Then define
-\begin{equation}
-  \underbrace {{K^{{d_1}{d_2}}}\left( {\overbrace X^{{n_1} \times d},\overbrace {X'}^{{n_2} \times d}} \right)}_{{n_1} \times {n_2}} = {K^{{d_1}{d_2}}}\left( {\left[ {\begin{array}{*{20}{c}}{{x_1}}\\ \vdots \\{{x_{{n_1}}}}\end{array}} \right],\left[ {\begin{array}{*{20}{c}}{{x_1}'}\\ \vdots \\{{x_{{n_2}}}'}\end{array}} \right]} \right) = {\left[ {{k^{{d_1}{d_2}}}\left( {{x_i},{x_j}'} \right)} \right]_{ij}}.
-\end{equation}
-
-There are a total of $n_1 + n_2$ inputs, resulting in an $n_1 \times n_2$ matrix. Note that the dimension of each of the inputs must all be the same $d$. 
-Also,
-\begin{equation}
-  {K^{{d_1}{d_2}}}\left( {X,X'} \right) = {X^{{d_1}{d_1}}}{\left( {X',X} \right)^T}.
-\end{equation}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Matern correlation function and its derivatives}
-
-If $g(\cdot, \cdot)$ is from the Matern class of covariance functions with parameter $5/2$ there is a more simple form. The subscripts for the inputs in $g(\cdot, \cdot)$ are dropped for legibility. 
-
-Let $\theta = \sqrt{5} / l$:
-
-\begin{align}
-g\left( {x,x'} \right) &= \left( {1 + \theta \left| {x - x'} \right| + \frac{1}{3}{\theta ^2}{{\left| {x - x'} \right|}^2}} \right)\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\\
-\frac{\partial }{{\partial x}}g\left( {x,x'} \right) &=  - \frac{1}{3}{\theta ^2}\left( {x - x'} \right)\left[ {1 + \theta \left| {x - x'} \right|} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\\
-\frac{{{\partial ^2}}}{{\partial x'\partial x}}g\left( {x,x'} \right) &= \frac{1}{3}{\theta ^2}\left[ {1 + \theta \left| {x - x'} \right| - {\theta ^2}{{\left( {x - x'} \right)}^2}} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}
-\end{align}
-    
-See calculations of derivatives of $g(\cdot, \cdot)$ below.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\bigskip
-%\subsection{Derivatives for the Matern}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\bigskip
-
-\subsubsection{First derivative}
-
-Recall: $g\left( {x,x'} \right) = \left[ {1 + \theta \left| {x - x'} \right| + \frac{1}{3}{\theta ^2}{{\left| {x - x'} \right|}^2}} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}$
-
-\begin{align}
-\frac{\partial }{{\partial x}}g\left( {x,x'} \right) &= \left[ {\theta sign\left( {x - x'} \right) + \frac{2}{3}{\theta ^2}\left( {x - x'} \right)} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\\
- &+ \left[ {1 + \theta \left| {x - x'} \right| + \frac{1}{3}{\theta ^2}{{\left( {x - x'} \right)}^2}} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left( { - \theta sign\left( {x - x'} \right)} \right)\\
-% = \exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left[ {\theta sign\left( {x - x'} \right) + \frac{2}{3}{\theta ^2}\left( {x - x'} \right) - \theta sign\left( {x - x'} \right) - {\theta ^2}\left| {x - x'} \right|sign\left( {x - x'} \right) - \frac{1}{3}{\theta ^3}{{\left( {x - x'} \right)}^2}sign\left( {x - x'} \right)} \right]\\
- &= \exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left[ { - \frac{1}{3}{\theta ^2}\left( {x - x'} \right) - \frac{1}{3}{\theta ^3}{{\left( {x - x'} \right)}^2}sign\left( {x - x'} \right)} \right]\\
- &= \exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left( { - \frac{1}{3}{\theta ^2}\left( {x - x'} \right)} \right)\left[ {1 + \theta \left( {x - x'} \right)sign\left( {x - x'} \right)} \right]\\
- &=  - \frac{1}{3}{\theta ^2}\left( {x - x'} \right)\left[ {1 + \theta \left| {x - x'} \right|} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}
-\end{align}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\bigskip
-
-\subsubsection{Second derivative}
-
-\begin{align}
-\frac{{{\partial ^2}}}{{\partial x'\partial x}}g\left( {x,x'} \right) &= \frac{\partial }{{\partial x'}}\left[ { - \frac{1}{3}{\theta ^2}\left( {x - x'} \right)\left[ {1 + \theta \left| {x - x'} \right|} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}} \right]\\
- &= \frac{\partial }{{\partial x'}}\left[ {\left[ { - \frac{1}{3}{\theta ^2}\left( {x - x'} \right) - \frac{1}{3}{\theta ^3}{{\left( {x - x'} \right)}^2}sign\left( {x - x'} \right)} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}} \right]\\
- &= \left[ {\frac{1}{3}{\theta ^2} - \frac{2}{3}{\theta ^3}\left( {x - x'} \right)\left( { - 1} \right)sign\left( {x - x'} \right)} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\\
- &+ \left[ { - \frac{1}{3}{\theta ^2}\left( {x - x'} \right) - \frac{1}{3}{\theta ^3}{{\left( {x - x'} \right)}^2}sign\left( {x - x'} \right)} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left( {\theta sign\left( {x - x'} \right)} \right)\\
- &= \exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left[ {\frac{1}{3}{\theta ^2} + \frac{2}{3}{\theta ^3}\left| {x - x'} \right| - \frac{1}{3}{\theta ^3}\left| {x - x'} \right| - \frac{1}{3}{\theta ^4}{{\left( {x - x'} \right)}^2}} \right]\\
- &= \exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left[ {\frac{1}{3}{\theta ^2} + \frac{1}{3}{\theta ^3}\left| {x - x'} \right| - \frac{1}{3}{\theta ^4}{{\left( {x - x'} \right)}^2}} \right]\\
- &= \frac{1}{3}{\theta ^2}\left[ {1 + \theta \left| {x - x'} \right| - {\theta ^2}{{\left( {x - x'} \right)}^2}} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}
-\end{align}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 \subsection{Setup}
 
 Assume
@@ -374,7 +226,7 @@ Assume
         \item $y_k^\delta = \frac{\partial }{{\partial {x_k}}}y\left( {{X^\delta }} \right) = y(X_k^\delta)$: vectors of partial derivatives in the $k$th input dimension; $k \in \{ 1, 2, ..., d \}$
         \item $\sigma^2$: constant variance parameter
         \item $l$: length-scale parameter
-        \item $K^{d_1 d_2}(X, X')$: covariance functions. The superscripts are $d_1, d_2 \in \left\{ {0,1,2,...,d} \right\}$, where $d_i$ indicates the dimension to which the derivative is taken for the $i$-th argument of $K(\cdot, \cdot)$ (explicit formulas given earlier).
+        \item $K^{b_1 b_2}(X, X')$: covariance functions. The superscripts are $b_1, b_2 \in \left\{ {0,1,2,...,d} \right\}$, where $d_i$ indicates the dimension to which the derivative is taken for the $i$-th argument of $K(\cdot, \cdot)$ (explicit formulas given later).
     \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -426,6 +278,153 @@ m &= 0 + {\Sigma _{12}}\Sigma _{22}^{ - 1}\left( {y - 0} \right) = \left[ {\begi
 \end{array}} \right]{K^{00}}{\left( {x,x} \right)^{ - 1}}y\\
 S &= {\Sigma _{11}} - {\Sigma _{12}}\Sigma _{22}^{ - 1}{\Sigma _{21}}  
 \end{align}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Covariance functions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Let 
+\begin{itemize}
+  \item $x_i$ be a row vector. That is,  
+  ${x_i} = \left[ {\begin{array}{*{20}{c}}
+{{x_{ {i,1} }}}&{{x_{ {i,2} }}}& \cdots &{{x_{ {i,d} }}}
+\end{array}} \right]$ 
+  \item $d = \dim(x)$
+  \item $b_1, b_2 \in \left\{ {0,1,2,...,d} \right\}$, where $b_j$ indicates the dimension to which the derivative is taken for the $j$-th argument of $k(\cdot, \cdot)$
+  \item $c(\cdot)$ is a correlation function. 
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bigskip
+\framebox[1.2\width]{$b_1 = b_2 = 0$} $\Rightarrow$ \texttt{"matern"/"sqexp"} 
+
+\begin{align}
+  Cov\left( {Y\left( {{x_1}} \right),Y\left( {{x_2}} \right)} \right) &= {k^{00}}\left( {{x_1},{x_2}} \right)\\
+ &= {\sigma ^2}\prod\limits_{m = 1}^d {c\left( {{x_{ {1,m} }},{x_{{2,m} }};{l_m}} \right)}
+\end{align}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% undefined control sequence: from hfill
+\bigskip
+\framebox[1.1\width]{$b_1 > 0, b_2 = 0$ or $b_1 = 0, b_2 > 0$} $\Rightarrow$ \texttt{"matern1"/"sqexp1"}
+
+\begin{align}
+  \frac{\partial }{{\partial {x_{ {1,b_1}}}}}Cov\left( {Y\left( {{x_1}} \right),Y\left( {{x_2}} \right)} \right) &= {k^{b_1 0}}\left( {{x_1},{x_2}} \right)\\
+ &= {\sigma ^2}\frac{\partial }{{\partial {x_{ {1, b_1} }}}}\prod\limits_{m = 1}^d {c\left( {{x_{ {1,m} }},{x_{ {2,m} }};{l_m}} \right)} \\
+ &= {\sigma ^2}\left[ {\prod\limits_{m = 1\atop
+m \ne b_1}^d {c\left( {{x_{ {1,m} }},{x_{ {2,m} }};{l_m}} \right)} } \right]\left[ {\frac{\partial }{{\partial {x_{ {1, b_1} }}}}c\left( {{x_{ {1,b_1} }},{x_{ {2,b_1} }};{l_{b_1} }} \right)} \right]\\
+\frac{\partial }{{\partial {x_{ {2,b_2} }}}}Cov\left( {Y\left( {{x_1}} \right),Y\left( {{x_2}} \right)} \right) &= {k^{0 b_2}}\left( {{x_1},{x_2}} \right)\\
+ &=  - {k^{b_20}}\left( {{x_1},{x_2}} \right)
+\end{align}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bigskip
+\framebox[1.2\width]{$b_1, b_2 > 0$} $\Rightarrow$ \texttt{"matern2"/"sqexp2"}
+
+\begin{align}
+    \frac{{{\partial ^2}}}{{\partial {x_{ {2,b_2} }}\partial {x_{ {1,b_1} }}}} &Cov\left( {Y\left( {{x_1}} \right),Y\left( {{x_2}} \right)} \right) = {k^{b_1 b_2}}\left( {{x_1},{x_2}} \right)\\
+ &= \left\{ \begin{array}{l}
+{\sigma ^2}\left[ {\prod\limits_{m = 1\atop
+m \ne b_1, b_2}^d {c\left( {{x_{1,m} },x_{2, m};{l_m}} \right)} } \right]\left[ {\frac{{{\partial ^2}}}{{\partial {x_{ {2, b_1} }}\partial {x_{ {1, b_1} }}}}c\left( {{x_{ {1, b_1} }},{x_{ {2,b_1} }};{l_i}} \right)} \right], b_1 = b_2\\
+{\sigma ^2}\left[ {\prod\limits_{m = 1\atop
+m \ne b_1, b_2}^d {c\left( {{x_{1,m} },x_{2, m};{l_m}} \right)} } \right]\left[ {\frac{\partial }{{\partial {x_{ {2, b_2} }}}}c\left( {{x_{ {1,b_2} }},{x_{ {2, b_2} }};{l_{b_2} }} \right)} \right]\left[ {\frac{\partial }{{\partial {x_{ {1, b_1} }}}}c\left( {{x_{ {1, b_1} }},{x_{ {2, b_1} }};{l_{b_1}}} \right)} \right], b_1 \ne b_2
+    \end{array} \right.
+\end{align}
+
+%\begin{align*}
+%    A\left(x\right)=
+%    \begin{cases} 1, &\textrm{if } x = 1 \\
+%        0, &\textrm{otherwise}
+%    \end{cases}
+%\end{align*}
+
+\pagebreak
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Multiple inputs}
+
+$k^{b_1b_2}(x_1, x_2)$ has been defined so that both arguments are row vectors. 
+That is,  
+  ${x_i} = \left[ {\begin{array}{*{20}{c}}
+{{x_{ {i,1} }}}&{{x_{ {i,2} }}}& \cdots &{{x_{ {i,d} }}}
+\end{array}} \right]$, and so $d = \dim(x)$. 
+
+Now I extend the definition of $k(\cdot, \cdot)$ to the function $K^{b_1b_2}(\cdot, \cdot)$, which allows for multiple inputs. 
+Let 
+
+\begin{align}
+\underbrace X_{{n_i} \times d} = \left[ {\begin{array}{*{20}{c}}{{x_1}}\\ \vdots \\{{x_{{n_i}}}}\end{array}} \right] = \left[ {\begin{array}{*{20}{c}}{{x_{ {1,1} }}}&{}&{{x_{ {1,d} }}}\\ \vdots &{}& \vdots \\{{x_{ {{n_i},1} }}}&{}&{{x_{ {{n_i},d} }}}\end{array}} \right]
+\end{align}
+
+Then define
+\begin{equation}
+  \underbrace {{K^{{b_1}{b_2}}}\left( {\overbrace X^{{n_1} \times d},\overbrace {X'}^{{n_2} \times d}} \right)}_{{n_1} \times {n_2}} = {K^{{b_1}{b_2}}}\left( {\left[ {\begin{array}{*{20}{c}}{{x_1}}\\ \vdots \\{{x_{{n_1}}}}\end{array}} \right],\left[ {\begin{array}{*{20}{c}}{{x_1}'}\\ \vdots \\{{x_{{n_2}}}'}\end{array}} \right]} \right) = {\left[ {{k^{{b_1}{b_2}}}\left( {{x_i},{x_j}'} \right)} \right]_{ij}}.
+\end{equation}
+
+There are a total of $n_1 + n_2$ inputs, resulting in an $n_1 \times n_2$ matrix. Note that the dimension of each of the inputs must all be the same $d$. 
+Also,
+\begin{equation}
+  {K^{{b_1}{b_2}}}\left( {X,X'} \right) = {K^{{b_1}{b_1}}}{\left( {X',X} \right)^T}.
+\end{equation}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Matern correlation function and its derivatives}
+
+If $c(\cdot, \cdot)$ is from the Matern class of covariance functions with parameter $5/2$ there is a more simple form. The subscripts for the inputs in $c(\cdot, \cdot)$ are dropped for legibility. 
+
+Let $\theta = \sqrt{5} / l$:
+
+\begin{align}
+c\left( {x,x'} \right) &= \left( {1 + \theta \left| {x - x'} \right| + \frac{1}{3}{\theta ^2}{{\left| {x - x'} \right|}^2}} \right)\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\\
+\frac{\partial }{{\partial x}}c\left( {x,x'} \right) &=  - \frac{1}{3}{\theta ^2}\left( {x - x'} \right)\left[ {1 + \theta \left| {x - x'} \right|} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\\
+\frac{{{\partial ^2}}}{{\partial x'\partial x}}c\left( {x,x'} \right) &= \frac{1}{3}{\theta ^2}\left[ {1 + \theta \left| {x - x'} \right| - {\theta ^2}{{\left( {x - x'} \right)}^2}} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}
+\end{align}
+    
+See calculations of derivatives of $c(\cdot, \cdot)$ below.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\bigskip
+%\subsection{Derivatives for the Matern}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bigskip
+
+\subsubsection{First derivative}
+
+Recall: $c\left( {x,x'} \right) = \left[ {1 + \theta \left| {x - x'} \right| + \frac{1}{3}{\theta ^2}{{\left| {x - x'} \right|}^2}} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}$
+
+\begin{align}
+\frac{\partial }{{\partial x}}c\left( {x,x'} \right) &= \left[ {\theta sign\left( {x - x'} \right) + \frac{2}{3}{\theta ^2}\left( {x - x'} \right)} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\\
+ &+ \left[ {1 + \theta \left| {x - x'} \right| + \frac{1}{3}{\theta ^2}{{\left( {x - x'} \right)}^2}} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left( { - \theta sign\left( {x - x'} \right)} \right)\\
+% = \exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left[ {\theta sign\left( {x - x'} \right) + \frac{2}{3}{\theta ^2}\left( {x - x'} \right) - \theta sign\left( {x - x'} \right) - {\theta ^2}\left| {x - x'} \right|sign\left( {x - x'} \right) - \frac{1}{3}{\theta ^3}{{\left( {x - x'} \right)}^2}sign\left( {x - x'} \right)} \right]\\
+ &= \exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left[ { - \frac{1}{3}{\theta ^2}\left( {x - x'} \right) - \frac{1}{3}{\theta ^3}{{\left( {x - x'} \right)}^2}sign\left( {x - x'} \right)} \right]\\
+ &= \exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left( { - \frac{1}{3}{\theta ^2}\left( {x - x'} \right)} \right)\left[ {1 + \theta \left( {x - x'} \right)sign\left( {x - x'} \right)} \right]\\
+ &=  - \frac{1}{3}{\theta ^2}\left( {x - x'} \right)\left[ {1 + \theta \left| {x - x'} \right|} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}
+\end{align}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bigskip
+
+\subsubsection{Second derivative}
+
+\begin{align}
+\frac{{{\partial ^2}}}{{\partial x'\partial x}}c\left( {x,x'} \right) &= \frac{\partial }{{\partial x'}}\left[ { - \frac{1}{3}{\theta ^2}\left( {x - x'} \right)\left[ {1 + \theta \left| {x - x'} \right|} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}} \right]\\
+ &= \frac{\partial }{{\partial x'}}\left[ {\left[ { - \frac{1}{3}{\theta ^2}\left( {x - x'} \right) - \frac{1}{3}{\theta ^3}{{\left( {x - x'} \right)}^2}sign\left( {x - x'} \right)} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}} \right]\\
+ &= \left[ {\frac{1}{3}{\theta ^2} - \frac{2}{3}{\theta ^3}\left( {x - x'} \right)\left( { - 1} \right)sign\left( {x - x'} \right)} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\\
+ &+ \left[ { - \frac{1}{3}{\theta ^2}\left( {x - x'} \right) - \frac{1}{3}{\theta ^3}{{\left( {x - x'} \right)}^2}sign\left( {x - x'} \right)} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left( {\theta sign\left( {x - x'} \right)} \right)\\
+ &= \exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left[ {\frac{1}{3}{\theta ^2} + \frac{2}{3}{\theta ^3}\left| {x - x'} \right| - \frac{1}{3}{\theta ^3}\left| {x - x'} \right| - \frac{1}{3}{\theta ^4}{{\left( {x - x'} \right)}^2}} \right]\\
+ &= \exp \left\{ { - \theta \left| {x - x'} \right|} \right\}\left[ {\frac{1}{3}{\theta ^2} + \frac{1}{3}{\theta ^3}\left| {x - x'} \right| - \frac{1}{3}{\theta ^4}{{\left( {x - x'} \right)}^2}} \right]\\
+ &= \frac{1}{3}{\theta ^2}\left[ {1 + \theta \left| {x - x'} \right| - {\theta ^2}{{\left( {x - x'} \right)}^2}} \right]\exp \left\{ { - \theta \left| {x - x'} \right|} \right\}
+\end{align}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -694,9 +693,9 @@ where $\tilde{w}^i_t = \frac{{\prod\nolimits_{p = 1}^N {\Phi \left( {{\tau _t}{y
 
 \begin{figure}[H]
   \begin{center}
-    \includegraphics[width=0.8\textwidth]{ex2sigma.png}
+    \includegraphics[width=0.8\textwidth]{ex2sigma.pdf}
     \vspace{0.1mm}
-    \caption{Posterior means for $\sigma$ from time 2 (red) to 20 (blue); $M = 20$, $N = 3000$ (+ 1000 burn-in) qqq sizing}
+    \caption{Posterior means for $\sigma$ from time 2 (red) to 20 (black); $M = 20$, $N = 3000$ (+ 1000 burn-in) qqq sizing}
     \label{sigma}
   \end{center}
 \end{figure}
@@ -716,7 +715,7 @@ where $\tilde{w}^i_t = \frac{{\prod\nolimits_{p = 1}^N {\Phi \left( {{\tau _t}{y
 % qqq sizing
 \begin{figure}[H]
   \begin{center}
-    \includegraphics[width=0.98\textwidth]{ex2given.png}
+    \includegraphics[width=0.98\textwidth]{ex2given.pdf}
     \vspace{0.1mm}
     \caption{Problem setup; black is $X$, blue is $X^*$, red is $X^\delta$.}
     \label{ex2given}
@@ -726,9 +725,9 @@ where $\tilde{w}^i_t = \frac{{\prod\nolimits_{p = 1}^N {\Phi \left( {{\tau _t}{y
 % qqq sizing
 \begin{figure}[H]
   \begin{center}
-    \includegraphics[width=0.98\textwidth]{ex2paras.png}
+    \includegraphics[width=0.98\textwidth]{ex2paras.pdf}
     \vspace{0.1mm}
-    \caption{Posterior densities and means for $l$, $\sigma^2$ (red to blue) and acceptance rates.}
+    \caption{Posterior densities and means for $l$, $\sigma^2$ (red to green) and acceptance rates.}
     \label{ex2paras}
   \end{center}
 \end{figure}
@@ -736,9 +735,9 @@ where $\tilde{w}^i_t = \frac{{\prod\nolimits_{p = 1}^N {\Phi \left( {{\tau _t}{y
 % qqq sizing
 \begin{figure}[H]
   \begin{center}
-    \includegraphics[width=0.98\textwidth]{ex2ystar.png}
+    \includegraphics[width=0.98\textwidth]{ex2ystar.pdf}
     \vspace{0.1mm}
-    \caption{Posterior densities and means for $y^*$ (red to blue).}
+    \caption{Posterior densities and means for $y^*$ (red to blue); true value is the black vertical line.}
     \label{ex2ystar}
   \end{center}
 \end{figure}
@@ -773,6 +772,7 @@ where $\tilde{w}^i_t = \frac{{\prod\nolimits_{p = 1}^N {\Phi \left( {{\tau _t}{y
 \item (EX2) Why are my posterior means for $y*$ moving in such an ugly manner compared to the paper's EX2 results? (Though the final posterior means generally look reasonable.)
 \item (EX2) Why is my final posterior mean for $\sigma^2$ so large (looks squared) compared to that in the paper?
 \item (EX2) Is EX2 following the paper's algorithm or is it only relying on re-weighting (no sampling)? 
+\item (EX2) How is kernel density estimation being done?
 
 \end{itemize}
 

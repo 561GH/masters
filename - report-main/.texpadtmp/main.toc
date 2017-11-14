@@ -2,13 +2,13 @@
 \contentsline {chapter}{Table of Contents}{iii}{section*.3}
 \contentsline {chapter}{\numberline {1}Report}{1}{chapter.1}
 \contentsline {section}{\numberline {1.1}Select notation and setup}{1}{section.1.1}
-\contentsline {subsection}{\numberline {1.1.1}Covariance functions}{1}{subsection.1.1.1}
-\contentsline {subsection}{\numberline {1.1.2}Multiple inputs}{3}{subsection.1.1.2}
-\contentsline {subsection}{\numberline {1.1.3}Matern correlation function and its derivatives}{3}{subsection.1.1.3}
-\contentsline {subsubsection}{First derivative}{4}{section*.4}
-\contentsline {subsubsection}{Second derivative}{5}{section*.5}
-\contentsline {subsection}{\numberline {1.1.4}Setup}{5}{subsection.1.1.4}
-\contentsline {subsubsection}{The posterior density}{6}{section*.6}
+\contentsline {subsection}{\numberline {1.1.1}Setup}{1}{subsection.1.1.1}
+\contentsline {subsubsection}{The posterior density}{2}{section*.4}
+\contentsline {subsection}{\numberline {1.1.2}Covariance functions}{3}{subsection.1.1.2}
+\contentsline {subsection}{\numberline {1.1.3}Multiple inputs}{5}{subsection.1.1.3}
+\contentsline {subsection}{\numberline {1.1.4}Matern correlation function and its derivatives}{5}{subsection.1.1.4}
+\contentsline {subsubsection}{First derivative}{6}{section*.5}
+\contentsline {subsubsection}{Second derivative}{7}{section*.6}
 \contentsline {section}{\numberline {1.2}Generating N particles}{7}{section.1.2}
 \contentsline {section}{\numberline {1.3}Imposing monotonicity}{8}{section.1.3}
 \contentsline {section}{\numberline {1.4}1-dimensional inputs}{11}{section.1.4}

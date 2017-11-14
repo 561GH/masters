@@ -12,7 +12,7 @@ M <- 20  # total time
 # shirin's tau sequence i.e. reciprocal of her nuseq
 taus <- 1 / c(Inf, ( seq(2, .1, length.out = M-1) )^5)
 
-N <- 4000  # particles desired for SCMC
+N <- 3000  # particles desired for SCMC
 burn <- 1000  # burn in for initialising particles
 
 # qqq
@@ -33,7 +33,7 @@ particles.yprime <- array(NA, dim = c(N, M, nrow(given$xprime)))
 #              given = given,           # data, locations, obs, etc.)
 #              N = burn + N,            # particles
 #              v1 = diag(c(.2, .2)))      # step size for l proposal
-init <- readRDS("init4000.rds")
+init <- readRDS("init3000.rds")
 
 particles.l[,1,] <- (init$chain.l)[-(1:burn),]
 particles.sig2[,1] <- (init$chain.sig2)[-(1:burn)]
@@ -71,8 +71,6 @@ step.sizes.l[[1]] <- step.sizes.l[[2]] <- diag(c(var(particles.l[,1,1]),
 
 step.sizes.ystaryprime <- rep(NA, M)
 step.sizes.ystaryprime[1:2] <- 0.1
-
-# TODO: should let step size vary to provide decent acceptance rates (during burn in?)
 
 # ==============================================================================
 ## despite notation in the algorithm, "eta0" will really count as the first

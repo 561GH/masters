@@ -13,10 +13,10 @@ library(sm)
 #   dev.off()
 # }
 
-par(mfrow = c(2, 2))
+par(mfrow = c(1, 3))
 
 ## l1
-colfunc <- colorRampPalette(c("red", "yellow", "springgreen", "royalblue"))
+colfunc <- colorRampPalette(c("red", "yellow", "springgreen")) #, "royalblue"))
 cols <- colfunc(M)
 
 sm.density(particles.l[,1,1], col = cols[1], xlab = "l1")
@@ -31,7 +31,7 @@ sm.density(particles.l[,1,1], col = cols[1], add = TRUE)
 abline(v = mean(particles.l[,1,1]), col = cols[1])
 
 ## l2
-colfunc <- colorRampPalette(c("red", "yellow", "springgreen", "royalblue"))
+colfunc <- colorRampPalette(c("red", "yellow", "springgreen")) #, "royalblue"))
 cols <- colfunc(M)
 
 sm.density(particles.l[,1,2], col = cols[1], xlab = "l2")
@@ -47,7 +47,7 @@ abline(v = mean(particles.l[,1,2]), col = cols[1])
 
 
 # assess sig2 #####################
-colfunc <- colorRampPalette(c("red", "yellow", "springgreen", "royalblue"))
+colfunc <- colorRampPalette(c("red", "yellow", "springgreen")) #, "royalblue"))
 cols <- colfunc(M)
 
 #particles.sig2 <- sqrt(particles.sig2)
@@ -83,7 +83,7 @@ points(x = all.rates.frame$time, y = all.rates.frame$accepted.sig2,
 points(x = all.rates.frame$time, y = all.rates.frame$accepted.ystaryprime,
        type = "l", col = "darkgreen")
 
-legend(x = 1.5, y = 0.25,
+legend(x = 1.5, y = 0.1,
        legend = c("l", "sig2", "ystaryprime"),
        lty = "solid", lwd = 1, cex = 0.5,
        col = c("red", "blue", "darkgreen"),
@@ -94,11 +94,11 @@ par(mfrow = c(1, 1))
 
 # assess ystar posterior #################
 ```{r}
-colfunc <- colorRampPalette(c("red", "yellow", "springgreen", "royalblue"))
+colfunc <- colorRampPalette(c("red", "yellow", "springgreen")) #, "royalblue"))
 #colfunc <- colorRampPalette(c("white", "black"))
 cols <- colfunc(M)
 
-par(mfrow = c(3, 2))
+par(mfrow = c(2, 3))
 
 for (i in 1:dim(particles.ystar)[3]) {
 
@@ -108,17 +108,23 @@ for (i in 1:dim(particles.ystar)[3]) {
   ymax <- sm.density(parts.i[,M], col = cols[M], display = "none")
 
   sm.density(parts.i[,1], col = cols[1],
-             ylim = c(0, max(ymax$estimate)),
+             #ylim = c(0, max(ymax$estimate)),
+             ylim = c(0, 10),
              xlim = c(true.values$ystar[i] - 1.5, true.values$ystar[i] + 1.5),
              xlab = paste("ystar", i))
-  abline(v = mean(parts.i[,1]), col = cols[1])
+  abline(v = mean(parts.i[,1]), col = cols[1], lwd = 3)
 
   for (t in 2:M) {
     sm.density(parts.i[,t], col = cols[t], add = TRUE)
-    abline(v = mean(parts.i[,t]), col = cols[t])
+    #abline(v = mean(parts.i[,t]), col = cols[t], lwd = 3)
+    
+    if (t %in% c(M)) {
+      abline(v = mean(parts.i[,t]), col = "blue", lwd = 3)
+    }
+    
   }
 
-  abline(v = true.values$ystar[i], col = "black", lwd = 2)
+  abline(v = true.values$ystar[i], col = "black", lwd = 5)
 
   # sm.density(parts.i[,1], col = cols[1], add = TRUE)
   # abline(v = mean(parts.i[,1]), col = cols[1])
@@ -201,7 +207,7 @@ abline(v = true.values$ystar[2], cex = 6)
 ```
 
 ```{r sqrt sigma2 posterior}
-colfunc <- colorRampPalette(c("red", "yellow", "springgreen", "royalblue"))
+colfunc <- colorRampPalette(c("red", "yellow", "springgreen")) #, "royalblue"))
 cols <- colfunc(M)
 
 particles.sqrt.sig2 <- sqrt(particles.sig2)
@@ -217,6 +223,6 @@ for (t in 2:M) {
 sm.density(particles.sqrt.sig2[,1], col = cols[1], add = TRUE)
 abline(v = mean(particles.sqrt.sig2[,1]), col = cols[1])
 
-abline(v = mean(particles.sqrt.sig2[,M]), col = "black", cex = 6)
+abline(v = mean(particles.sqrt.sig2[,M]), col = "black", lwd = 6)
 ```
 
